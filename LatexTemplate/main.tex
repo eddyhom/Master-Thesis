@@ -1,0 +1,208 @@
+% Document type
+\documentclass[10pt, titlepage, a4paper, times]{article}
+	% Packages
+        \usepackage{graphicx}
+	\usepackage{amsmath}
+	\usepackage{amsfonts}
+	\usepackage{fancyhdr}
+	\usepackage{enumerate}
+	\usepackage{listings}
+	\usepackage[titletoc]{appendix}
+	\usepackage[pdfborder={0 0 0},colorlinks=true, urlcolor=blue, citecolor=red, bookmarks=false]{hyperref}
+	\usepackage[margin=3cm]{geometry}
+\usepackage[absolute]{textpos}
+	\usepackage[section]{placeins}
+	\usepackage{url}
+	\usepackage{tabularx}
+%	\usepackage{gensymb}
+	\usepackage{caption}
+%	\usepackage{xltxtra}
+	% Page style
+	\pagestyle{fancy}
+	\marginparsep = 0pt
+
+	% Set font
+	%\setromanfont{Calibri}
+
+	\renewcommand\contentsname{Table of Contents}
+	\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+	
+	\newcommand{\circR}{\textsuperscript{\textregistered}}
+
+        % set the style for the section and subsection headers
+        \renewcommand{\thesection}{\thepart \arabic{section}.}
+        \renewcommand{\thesubsection}{\thepart \arabic{section}.\arabic{subsection}.}
+
+	% Code style
+	\lstset{
+		backgroundcolor=\color[rgb]{0.92,0.92,0.92},
+		basicstyle=\footnotesize,
+		showspaces=false,
+		showstringspaces=false,
+		showtabs=false,
+		tabsize=2,
+		captionpos=b,
+		breaklines=false,
+		keywordstyle=\color[rgb]{0,0,1},
+		commentstyle=\color[rgb]{0.133,0.545,0.133}
+	}
+
+\makeatletter
+
+\newcommand\frontmatter{%
+    \cleardoublepage
+  %\@mainmatterfalse
+  \pagenumbering{roman}}
+
+\newcommand\mainmatter{%
+    \cleardoublepage
+ % \@mainmattertrue
+  \pagenumbering{arabic}}
+
+\newcommand\backmatter{%
+  \if@openright
+    \cleardoublepage
+  \else
+    \clearpage
+  \fi
+ % \@mainmatterfalse
+   }
+
+\makeatother
+
+\begin{document}
+\begin{titlepage}
+% Title
+\input{./title.tex}
+\end{titlepage}
+%\date{}
+%\maketitle
+
+% Page style
+\thispagestyle{fancy}
+\fancyhead[R]{Short title of the thesis}
+\fancyhead[L]{Authors}
+\fancyfoot[L]{}
+%\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Begin actual text
+
+
+
+\def\abstract{
+  \vfil
+\begin{center}%
+{\bfseries\abstractname\vspace{-.5em}}
+\end{center}
+\itshape
+}
+
+\def\endabstract{\par
+}
+
+\frontmatter
+
+
+\section*{Introduktion: om begrepp som används i mallen}
+
+I mallen anv\"{a}nder vi ett antal begrepp som det \"{a}r viktigt att ha klart f\"{o}r sig vad de avser och hur de relaterar till varandra. Vi illustrerar detta med exempel.
+Du kan ha f\r{a}tt ditt examensarbete som ett uppdrag fr\r{a}n t ex ett f\"{o}retag. I s\r{a} fall har du ofta f\r{a}tt ett problem som f\"{o}retaget upplever och som du ska f\"{o}rs\"{o}ka hitta l\"{o}sning p\r{a}. Problemet utg\"{o}r i detta fall bakgrunden till syftet med arbetet och den fr\r{a}gest\"{a}llning som du arbetar fram.
+Exempel: F\"{o}retaget X har ett system som de vill kunna anv\"{a}nda i en realtidstill\"{a}mpning, men prestanda i systemet \"{a}r ok\"{a}nt. Problemet \"{a}r d\r{a}: Prestanda i systemet \"{a}r ok\"{a}nt. L\"{o}sningen p\r{a} problemet \"{a}r att m\"{a}ta prestanda. Syftet med ditt arbete blir att kartl\"{a}gga systemets prestanda s\r{a} att du f\r{a}r ett m\r{a}tt p\r{a} detta. Fr\r{a}gest\"{a}llningen kan formuleras som: Vad \"{a}r systemets prestanda? Motivationen f\"{o}r arbetet \"{a}r att det \"{a}r viktigt att k\"{a}nna prestanda n\"{a}r systemet ska anv\"{a}ndas f\"{o}r realtidstill\"{a}mpningar. N\"{a}r du har syfte och fr\r{a}gest\"{a}llning klar formulerar du de m\r{a}l som du ska uppfylla med arbetet, i det h\"{a}r fallet kan m\r{a}len t ex vara att m\"{a}ta ett antal olika aspekter av prestanda. Tillsammans kommer dessa m\r{a}l d\r{a} att uppfylla syftet. 
+Men ditt examensarbete beh\"{o}ver inte vara formulerat som ett specifikt problem som ska l\"{o}sas. Andra exempel p\r{a} arbeten som kan f\"{o}rekomma som examensarbeten kan vara:
+\begin{itemize}
+\item[--]	``Case study'' eller studie av n\r{a}got fenomen
+\item[--]	Litteraturstudie
+\item[--]	Unders\"{o}ka n\r{a}got, t ex hur anv\"{a}ndare interagerar med en mjukvara eller hur en design kan anpassas till en viss grupp anv\"{a}ndare
+\item[--]	Analysera t ex j\"{a}mf\"{o}ra prestanda hos olika programvaror
+\item[--]	Utv\"{a}rdera h\"{a}nger ofta ihop med att analysera n\r{a}got, din uppgift kan vara att l\"{a}mna en rekommendation om vilket verktyg som b\"{a}st l\"{a}mpar sig f\"{o}r en viss uppgift
+\item[--]	Utforska ny teknik eller nya angreppss\"{a}tt. I detta kan ing\r{a} att utveckla en artefakt, t ex en mjukvara eller ett system. 
+\item[--]	Utreda en fr\r{a}gest\"{a}llning, t ex genom att g\"{o}ra en f\"{o}rstudie
+\item[--]	Utveckla och utv\"{a}rdera en algoritm, t ex f\"{o}r ett ber\"{a}kningsproblem
+\end{itemize}
+Naturligtvis kan ditt examensarbete ocks\r{a} inneh\r{a}lla flera av ovanst\r{a}ende komponenter. Gemensamt f\"{o}r alla examensarbeten \"{a}r att de ska vara grundligt vetenskapligt f\"{o}rankrade, ett examensarbete f\r{a}r t ex inte vara enbart en implementation.
+
+I m\r{a}nga av exemplen ovan finns det inte n\r{a}got tydligt specificerat problem som ska l\"{o}sas. Det kan ist\"{a}llet r\"{o}ra sig om en fr\r{a}ga som du s\"{o}ker svar p\r{a}, som i exemplet med utv\"{a}rdering. Men alla examensarbeten ska ha syfte, fr\r{a}gest\"{a}llning och motivation. Fr\r{a}gest\"{a}llningen ska vara utformad s\r{a} att den g\r{a}r att besvara p\r{a} n\r{a}got s\"{a}tt genom det arbete du g\"{o}r. Men svaret kan vara abstrakt, det kan t ex vara att bidra till kunskap om fr\r{a}gest\"{a}llningen. I exemplet d\"{a}r uppgiften \"{a}r att utforska en teknik, s\r{a} skulle fr\r{a}gest\"{a}llningen kunna vara ”Vilka problem finns med att utveckla XX”? Det \"{a}r ocks\r{a} vanligt att arbetet inneb\"{a}r att du ska analysera och/eller utv\"{a}rdera artefakten du utvecklat. Fr\r{a}gest\"{a}llning och syfte ska matcha varandra p\r{a} s\r{a} s\"{a}tt att n\"{a}r syftet \"{a}r uppn\r{a}tt s\r{a} besvaras fr\r{a}gest\"{a}llningen.
+I texten kommer vi att anv\"{a}nda begreppet uppgift f\"{o}r det du ska g\"{o}ra, vare sig det \"{a}r ett problem som ska l\"{o}sas eller n\r{a}got annat.
+Texten i mallen \"{a}r i denna version p\r{a} svenska, men f\"{o}r varje rubrik finns motsvarande engelska ord inom parentes.
+
+Denna sida ska inte ing\r{a} i slutrapporten
+\newpage
+
+%add as many preface sections as need by following the "Introduktion" example above.
+
+
+% ============================= Abstract ==============================
+\begin{abstract}
+Det h\"{a}r avsnittet ska helt enkelt vara just detta: en sammanfattning av hela rapporten. En l\"{a}mplig omfattning \"{a}r c:a 200 – 250 ord.  En bra tumregel \"{a}r att sammanfattningen ska h\r{a}llas s\r{a} kort det g\r{a}r, den ska vara kompakt men fortfarande tydlig, informativ och v\"{a}cka intresse. Ge de viktigaste fakta
+och summera allt det som \"{a}r v\"{a}sentligt i rapporten.  F\"{o}ljande b\"{o}r ing\r{a}:
+\begin{itemize}
+\item[--]	Presentation/introduktion av omr\r{a}det f\"{o}r arbetet
+\item[--]	\"{O}versiktlig presentation av uppgiften inklusive syfte och fr\r{a}gest\"{a}llning
+\item[--]	Motivation till varf\"{o}r omr\r{a}det och uppgiften \"{a}r viktiga och intressanta
+\item[--]	Generell beskrivning av hur du angripit uppgiften, vad du har gjort
+\item[--]	Sammanfattning av resultat och slutsatser och vad ditt arbete bidrar med
+\end{itemize}
+
+Inga detaljer ska vara med i sammanfattningen, inte heller beskrivning av hur rapporten \"{a}r uppst\"{a}lld. 
+Sammanfattningen ska kunna l\"{a}sas helt frist\r{a}ende fr\r{a}n resten av rapporten, och av en ganska bred grupp av l\"{a}sare. Den ska ge en bra grund f\"{o}r att en l\"{a}sare ska kunna bed\"{o}ma om hen \"{a}r intresserad av att l\"{a}sa hela rapporten. 
+Sammanfattningen \"{a}r den del av en rapport som l\"{a}ses allra mest och av flest personer. D\"{a}rf\"{o}r \"{a}r det extra viktigt att du skriver en bra sammanfattning. Du beh\"{o}ver ha ett ordentligt grepp om inneh\r{a}llet i rapporten n\"{a}r du skriver sammanfattningen, och n\"{a}r hela rapporten \"{a}r klar b\"{o}r du granska och vid behov revidera sammanfattningen s\r{a} att den \"{o}verensst\"{a}mmer med rapporten.
+
+\end{abstract}
+\newpage
+
+
+%========================== Table of contents ===========================
+\hypersetup{linkcolor=black}
+\tableofcontents
+%\hypersetup{linkcolor=red}
+\vfil
+Inneh\r{a}llsf\"{o}rteckningen ska ange de olika rubrikerna i rapporten och p\r{a} vilka sidor i rapporten dessa finns. En f\"{o}rteckning \"{o}ver figurer kan finnas efter inneh\r{a}llsf\"{o}rteckningen. Samtliga figurer/bilder ska vara numrerade och refererade till i texten.
+
+\clearpage
+
+\mainmatter
+
+% ============================== Content: Modify the structure according to your needs ===============================
+\input{./introduction}
+\newpage
+\input{./background} %SOTA
+\newpage
+\input{./rw}
+\newpage
+\input{./method}
+\newpage
+\input{./etics}
+\newpage
+\input{./contribs}
+\newpage
+\input{./results}
+\newpage
+\input{./discussion}
+\newpage
+\input{./conclusions}
+\newpage
+
+%\input{./Acknowledgments}
+
+
+% ============================= References ============================
+%\newpage
+\bibliographystyle{IEEEtran}
+\bibliography{./references}
+\addcontentsline{toc}{section}{References}
+
+% ============================ Appendices =============================
+%\newpage
+%\begin{appendices}
+
+	%\input{./Appendices/appendices1}
+	%\clearpage
+	
+	%\input{./Appendices/appendices2}
+	%\clearpage
+	
+%\end{appendices}
+
+\end{document}

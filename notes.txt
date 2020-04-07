@@ -1,0 +1,58 @@
+Notes for the thesis!
+
+https://ieeexplore-ieee-org.ep.bib.mdh.se/stamp/stamp.jsp?tp=&arnumber=9043527
+
+FER DATABASES:
+*JAFFE dataset  [34].  
+*Fer2013  dataset  [35].  
+*Cohn-Kanade  dataset and CK + dataset [36-37].
+*RAF2017 dataset [38]
+*And other data sets [39-41].
+
+DATE PREPROCESSING:
+Adaboost   algorithm   [42]   can remove   most   facial   features   such   as   hair,   neck,   and background   after   processing   facial   images,   and   reduce some  interference  information.
+
+FACIAL EXPRESSION FEATURE EXTRACTION:
+Based on overall image: PCA,LDA,DCNN.
+Based on the face area: 
+  Based on texture features: Gabor,  LBP.
+  Based on geometric features: ASM, AAM.
+  Model-based: Elastic matching, Optical flow method.
+
+https://ieeexplore-ieee-org.ep.bib.mdh.se/stamp/stamp.jsp?tp=&arnumber=8119148
+
+FRAMEWORK DESIGN OF CNNs: 
+Image input, Convolutional layer, ReLU layer, Pooling layers, Fully connected layer, Classification layers.
+
+EXPERIMENTAL RESULTS:
+Used Python2.7, TensorFlow, Opencv-python(2.4.13), Openjdk-1.8.
+
+https://ieeexplore-ieee-org.ep.bib.mdh.se/stamp/stamp.jsp?tp=&arnumber=6974092
+
+Use  OpenCV  library  to  perform  face  detection.
+
+Mouth is Open_half, The shape of mouth is Curve, The region of cheeks is Wrinkle, The degree of frown is No = Positive..
+Mouth is Close, The shape of mouth is Straight, The region of cheeks is Flat, The degree of frown is Yes = Negative.
+Mouth is Close, The shape of mouth is Straight, The region of cheeks is Flat, The degree of frown is No = Normal.
+
+Human observe robots’ actions and give their facial expression as emotion rewards to induct robots’ learning.  
+
+Figure 4: Code for Q-learning.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
