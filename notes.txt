@@ -3,7 +3,7 @@ Notes for the thesis!
 https://ieeexplore-ieee-org.ep.bib.mdh.se/stamp/stamp.jsp?tp=&arnumber=9043527
 
 FER DATABASES:
-*JAFFE dataset  [34].  
+*JAFFE dataset  [34].  https://zenodo.org/record/3451524?fbclid=IwAR2ArkPVYqGP4MVCFjmgkm5B9yJAff2taBBArj5PcJq14hIxk0J_W1DWec4#.Xo3Q3_GxVbq
 *Fer2013  dataset  [35].  
 *Cohn-Kanade  dataset and CK + dataset [36-37].
 *RAF2017 dataset [38]
@@ -44,6 +44,12 @@ Figure 4: Code for Q-learning.
 
 
 
+CNN - Emotion Recognition - Training 
+
+make_image_classifier --image_dir ~/Documents/MasterThesis/Master-Thesis/DataBases/Emotios\ Labelled/Training/ --saved_model_dir ~/Documents/MasterThesis/Master-Thesis/Python/Examples/ --labels_output_file ~/Documents/MasterThesis/Master-Thesis/Python/Examples/retrained_labels.txt --tflite_output_file ~/Documents/MasterThesis/Master-Thesis/Python/Examples/new_mobile_model.tflite --tfhub_module https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4 --assert_accuracy_at_least 0.9 --train_epochs 7 --do_fine_tuning true ==== val_acc:82.9% (Live only shows negative)
+
+
+make_image_classifier --image_dir ~/Documents/MasterThesis/Master-Thesis/DataBases/Emotios\ Labelled/Training/ --saved_model_dir ~/Documents/MasterThesis/Master-Thesis/Python/Examples/ --labels_output_file ~/Documents/MasterThesis/Master-Thesis/Python/Examples/retrained_labels.txt --tflite_output_file ~/Documents/MasterThesis/Master-Thesis/Python/Examples/new_mobile_model.tflite --tfhub_module https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4 --assert_accuracy_at_least 0.8 --train_epochs 5 --do_fine_tuning true  ==== val_acc:83% (Live only shows negative)
 
 
 
