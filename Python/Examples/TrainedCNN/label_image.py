@@ -25,6 +25,9 @@ import numpy as np
 from PIL import Image
 
 import tensorflow as tf # TF2
+tflite = '/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/TrainedCNN/new_mobile_model.tflite' #Change to directory where tflite file is
+labels_file = '/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/TrainedCNN/retrained_labels.txt' #Change to directory where labels file is
+
 
 
 def load_labels(filename):
@@ -41,12 +44,12 @@ def main(image):
 	parser.add_argument(
 		  '-m',
 		  '--model_file',
-		  default='/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/TrainedCNN/new_mobile_model.tflite',
+		  default=tflite,
 		  help='.tflite model to be executed')
 	parser.add_argument(
 		  '-l',
 		  '--label_file',
-		  default='/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/TrainedCNN/retrained_labels.txt',
+		  default=labels_file,
 		  help='name of file containing labels')
 	parser.add_argument(
 		  '--input_mean',

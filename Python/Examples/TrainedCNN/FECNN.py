@@ -1,49 +1,48 @@
 import cv2
 import label_image
+import tensorflow as tf
+import numpy as np
 
-#Load XML file
-classifier = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
+#IMPORTANT PATHS CHANGE TO THE ONE IN YOUR COMPUTER
+haarPath =  'haarcascade_frontalface_alt.xml' #Change this to your own directory
+FaceFileName = "/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/TrainedCNN/test.jpg" #Save file to this location
+MODEL_DIR = "/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/model_1.1.hdf5"
 
-size = 4
+IMG_SIZE = 70
+NEW_SIZE = (IMG_SIZE, IMG_SIZE)
+
+#LOAD CLASSIFIER AND CNN_MODEL
+classifier = cv2.CascadeClassifier(haarPath)
+model = tf.keras.models.load_model(MODEL_DIR)
 
 webcam = cv2.VideoCapture(0)
 
 while True:
 	(rval, im) = webcam.read()
-	im = cv2.flip(im,1,0) #Mirror image
-	
-	#Resize the image to speed up detection
-	mini = cv2.resize(im, (int(im.shape[1]/size), int(im.shape[0]/size)))
+	#im = cv2.flip(im,1,0) #Mirror image -- 
 
 	#Detect Multiscale / faces
-	faces = classifier.detectMultiScale(mini)
+	faces = classifier.detectMultiScale(im)
 
 	#Draw rectangles around each face
 	for f in faces:
-		(x, y, w, h) = [v * size for v in f] #Scale the shapesize backup
+		(x, y, w, h) = [v for v in f] #Scale the shapesize backup
+
+		#PART OF THE PICTURE INCLUDING FACE, RESIZE IT TO FIT CNN's INPUT
+		sub_face = im[y:y+h, x:x+w]
+		subface_resize = cv2.resize(sub_face, NEW_SIZE)/255
+		subface_resize = (np.expand_dims(subface_resize, 0))
+		emotion = model.predict(x=subface_resize) #POSITIVE VALUE = POSITIVE EMOTION // NEGATIVE VALUE = NEGATIVE EMOTION
+
 		cv2.rectangle(im, (x,y), (x+w,y+h), (0,255,0), 1)
 
-		#Save just the rectangle faces in SubRecFaces
-		sub_face = im[y:y+h, x:x+w]
-
-		FaceFileName = "/home/eddyhom/Documents/MasterThesis/Master-Thesis/Python/Examples/TrainedCNN/test.jpg" #Saving the current image from the webcam for testing
-		cv2.imwrite(FaceFileName, sub_face)
-
-		results, labels = label_image.main(FaceFileName) #Getting the result from the label_image file.
-
-		text1 = str(format(results[0],'.2f'))+": "+labels[0]
-		text2 = str(format(results[1],'.2f'))+": "+labels[1] 
-
 		font = cv2.FONT_HERSHEY_SIMPLEX
-		if(results[0] > results[1]):
-			text = labels[0]
+		if(emotion[0] > 0):
+			text = "POSITIVE"
 		else:
-			text = labels[1]
+			text = "NEGATIVE"
 
 		cv2.putText(im, text, (x+w,y-50), font, 0.7, (0,0,255),3)
-		#cv2.putText(im, text2, (x+w,y-80), font, 0.7, (0,0,255),3)
-		
-
 
 	
 	#Show the image
