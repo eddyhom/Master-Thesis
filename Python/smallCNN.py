@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 
+#CHANGE DATA_DIR TO YOUR OWN DIRECTORY INCLUDING THE TRAINING DATA
 DATA_DIR = "/home/eddyhom/Documents/MasterThesis/Master-Thesis/DataBases/Emotios Labelled/RAFdatabase/Training"
 DEST_DIR = "model_1.2.hdf5"
 IMG_SIZE = 70
@@ -50,8 +51,8 @@ model.compile(optimizer=optimizer_TimeDecay, #tf.keras.optimizers.RMSprop(lr=LEA
               loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-model.summary()
-'''
+model.summary() #SHOWS THE ARCHITECTURE OF THE CNN
+
 history = model.fit_generator(train_generator,
                               validation_data=validation_generator,
                               epochs=INITIAL_EPOCHS, callbacks=cb_list, verbose=1)
@@ -59,8 +60,6 @@ history = model.fit_generator(train_generator,
 model.save(DEST_DIR, overwrite=True)
 
 test_loss, test_acc = model.evaluate(validation_generator, verbose=2)
-'''
-'''
-loss0, accuracy0 = model.evaluate_generator(validation_generator, steps=50, verbose=1, callbacks=cb_list)'''
+
 print("INITIAL ACCURACY: {:.2f}".format(test_acc))
 print("INITIAL LOSS: {:.2f}".format(test_loss))
