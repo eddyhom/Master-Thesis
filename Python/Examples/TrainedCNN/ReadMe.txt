@@ -1,7 +1,9 @@
-In label_image.py change in def main(image): image is path to the picture to be uploaded.
-Change tflite to your directory including the *.tflite file.
-Change labels_file to your directory including the labels file.
+haarcascade_frontalface_alt.xml:
+It is the HAAR that detects faces. Keep in the same directory otherwise change path to its location.
+
+model_1.1.hdf5:
+It is the CNN-model that predicts the emotion given a face. It receives an array of images of size (70x70x3) and it outputs a single value, if negative the emotion is predicted to be negative and if positive the emotion is predicted to be positive.
 
 In FECNN.py:
-Change haarPath to your own directory including the Haar XML file.
-FaceFileName change to directory you want to save the picture in. 
+Dependencies needed to run script are cv2 (Computer Vision version 2), tensorflow (version 2) and numpy.
+Time that takes since reading image from camera until it shows it again with prediction is approx 0.2s..
