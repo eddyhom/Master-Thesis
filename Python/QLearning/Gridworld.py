@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame
-import math
+from math import floor, sqrt
 
 import os
 from time import sleep
@@ -11,18 +11,16 @@ width = 600
 
 class GridWorld(object):
     def __init__(self, m, n): #m and n, shape of the grid
-        self.grid = np.zeros((m, n))
-        self.m = m
-        self.n = n
-        self.stateSpace = [i for i in range(self.m*self.n)] #State space without terminal state
-        self.stateSpace.remove((self.m*self.n) - 1) #State space does not include terminal state
-        self.stateSpacePlus = [i for i in range(self.m*self.n)] #State space with terminal state
-        self.actionSpace = {'U': -self.m, 'D': self.m, #Moving up and down one row => distance m
-                            'L': -1, 'R': 1}
+        self.w = w  # Width
+        self.h = h  # Height
+        self.stateSpace = [i for i in range(floor(sqrt(self.h * self.h + self.w * self.w)))]  # State space distance to goal (for now every meter)
+
+        self.actionSpace = {'U': [0, -1], 'D': [0, 1],
+                            'L': [-1, 0], 'R': [1, 0]}  # How to take each action
         '''UL': -self.m-1,  'UR': -self.m+1, 'DL': self.m-1, 'DR': self.m+1}'''
-        self.possibleActions = ['U', 'D', 'L', 'R']#, 'UL', 'UR', 'DL', 'DR']
-        # dict with magic squares and resulting squares
-        self.agentPosition = 0
+        self.possibleActions = ['U', 'D', 'L', 'R']  # Possible actions that robot can take
+
+        self.agentPosition = [0, 0]  # Robots position
 
     def isTerminalState(self, state):
         return state in self.stateSpacePlus and state not in self.stateSpace
