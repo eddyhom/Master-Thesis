@@ -10,7 +10,7 @@ width = 600
 
 
 class GridWorld(object):
-    def __init__(self, m, n): #m and n, shape of the grid
+    def __init__(self, w, h): #m and n, shape of the grid
         self.w = w  # Width
         self.h = h  # Height
         self.stateSpace = [i for i in range(floor(sqrt(self.h * self.h + self.w * self.w)))]  # State space distance to goal (for now every meter)
