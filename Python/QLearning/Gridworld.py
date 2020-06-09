@@ -6,55 +6,61 @@ from math import floor, sqrt
 import os
 from time import sleep
 
-width = 600
+width = 100
 
 
 class GridWorld(object):
     def __init__(self, w, h): #m and n, shape of the grid
         self.w = w  # Width
         self.h = h  # Height
-        self.stateSpace = [i for i in range(floor(sqrt(self.h * self.h + self.w * self.w)))]  # State space distance to goal (for now every meter)
-
-        self.actionSpace = {'U': [0, -1], 'D': [0, 1],
-                            'L': [-1, 0], 'R': [1, 0]}  # How to take each action
-        '''UL': -self.m-1,  'UR': -self.m+1, 'DL': self.m-1, 'DR': self.m+1}'''
-        self.possibleActions = ['U', 'D', 'L', 'R']  # Possible actions that robot can take
 
         self.agentPosition = [0, 0]  # Robots position
+        self.goal = [self.w, self.h] # Positive Person
+
+        states = []
+        state = []
+        for i in range(self.w+1): #Still working on this!!!!!!
+            for j in range(self.h+1):
+                dx = self.goal[0] - i
+                dy = self.goal[1] - j
+                angle = ''
+                if i > j:
+                    angle = 'w'
+                else:
+                    angle = 'h'
+
+                states.append((format(sqrt(dx**2 + dy**2), '.2f'), angle, (i,j)))   # State space distance to goal (for now every meter)
+
+        self.stateSpace = states
+
+        self.possibleActions = ['U', 'D', 'L', 'R']  # Possible actions that robot can take
+        self.actionSpace = {'U': [0, -1], 'D': [0, 1],
+                            'L': [-1, 0], 'R': [1, 0]}  # How to take each action
+
 
     def isTerminalState(self, state):
-        return state in self.stateSpacePlus and state not in self.stateSpace
-
-    def getAgentRowAndColumn(self):
-        x = self.agentPosition // self.m
-        y = self.agentPosition % self.n
-        return x, y
+        return state == self.goal
 
     def setState(self, state): #Takes the new state as input
-        x, y = self.getAgentRowAndColumn()
-        self.grid[x][y] = 0 #0 denotes an empty square
         self.agentPosition = state #Agent position is the new state
-        x, y = self.getAgentRowAndColumn()
-        self.grid[x][y] = 1 #1 represents the column
 
-    def offGridMove(self, newState, oldState):
-        # if we move into a row not in the grid
-        if newState not in self.stateSpacePlus:
-            return True
-        # if we're trying to wrap around to next row
-        elif oldState % self.m == 0 and newState % self.m == self.m - 1:
-            return True
-        elif oldState % self.m == self.m - 1 and newState % self.m == 0:
-            return True
-        else:
-            return False
+    def offGridMove(self, newState, oldState): #Change input if needed
+        # if newState outside return True
+        # else if newState within boundaries return False
+
+
+    def getState(self, action):
+        resultingPosition = [self.agentPosition[0] + self.actionSpace[action][0],
+                          self.agentPosition[1] + self.actionSpace[action][1]]
+        #newState =
 
     def step(self, action):
-        x, y = self.getAgentRowAndColumn()
-        resultingState = self.agentPosition + self.actionSpace[action]
+        resultingState = [self.agentPosition[0] + self.actionSpace[action][0],
+                          self.agentPosition[1] + self.actionSpace[action][1]]
 
         reward = -1 if not self.isTerminalState(resultingState) else 0
-        if not self.offGridMove(resultingState, self.agentPosition): #If not movinf off grid
+
+        if not self.offGridMove(resultingState, self.agentPosition): #If not moving off grid
             self.setState(resultingState)
             return resultingState, reward, \
                    self.isTerminalState(resultingState), None
@@ -63,10 +69,8 @@ class GridWorld(object):
                    self.isTerminalState(self.agentPosition), None
 
     def reset(self):
-        self.agentPosition = 0
-        self.grid = np.zeros((self.m, self.n))
-        self.grid[-1][-1] = 2
-        return self.agentPosition
+        # Reset what must be reset and
+        # Return Initial state (distance to goal and angle)
 
     def render(self):
         x, y = 0, 0  # starting position
@@ -100,20 +104,32 @@ def maxAction(Q, state, actions):
     action = np.argmax(values)
     return actions[action]
 
+'''def checkIfDuplicates_1(routes):
+    dups = {tuple(x) for x in routes if routes.count(x) > 1}
+    print(dups)'''
+
 if __name__ == '__main__':
     # map magic squares to their connecting square
-    grids = 11
-    env = GridWorld(grids, grids)
+    width = 9
+    height = 9
+    env = GridWorld(width, height)
     # model hyperparameters
     learning_rate = 0.1 #Determines to what extent newly acquired info overrides old info.
     discount = 1.0 #Determines the importance of future rewards.
     EPS = 1.0
 
+    print(env.stateSpace)
+    print(len(env.stateSpace))
+
+    #checkIfDuplicates_1(env.stateSpace)
+
+
     Q = {}
     #Want to find a value of state action pairs
-    for state in env.stateSpacePlus:
+    for state in env.stateSpace:
         for action in env.possibleActions:
             Q[state, action] = 0
+
 
     numGames = 50000
     totalRewards = np.zeros(numGames) #Keeps track of total rewards
@@ -125,7 +141,7 @@ if __name__ == '__main__':
             print('starting game ', i)
             rend = True
             pygame.init()
-            win = pygame.display.set_mode((width, width))
+            win = pygame.display.set_mode((env.w, env.h))
             pygame.display.set_caption("First Game")
         else:
             rend = False
@@ -133,19 +149,16 @@ if __name__ == '__main__':
 
         done = False
         epRewards = 0
-        observation = env.reset() #Reset environment
+        observation = env.reset() #Reset environment - Returns Agent Position....
 
         while not done:
             rand = np.random.random()
             action = maxAction(Q, observation, env.possibleActions) if rand < (1-EPS) \
-                                                    else env.actionSpaceSample()
+                                                    else env.actionSpaceSample() #Else make a random choice
 
             #Get new state and reward from environment
             observation_, reward, done, info = env.step(action)
             epRewards += reward
-            '''if epRewards < -2000:
-                epRewards = -3000
-                done = True'''
 
             action_ = maxAction(Q, observation_, env.possibleActions)
 
