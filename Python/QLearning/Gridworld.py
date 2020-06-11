@@ -112,12 +112,12 @@ class GridWorld(object):
 
     def render(self):
         x, y = 0, 0  # starting position
-        w = width / self.m  # width of each cell
+        w = width / self.w  # width of each cell
         border = w - 2
         robot_size = border / 3
         robot_pos = w/2 - robot_size / 2
 
-        for row in self.grid:
+        for row in self.direction:
             for col in row:
                 if col == 0:
                     pygame.draw.rect(win, (255, 255, 255), (x + 1, y + 1, border, border))
@@ -147,6 +147,14 @@ def checkIfDuplicates_1(routes):
     print(dups)
     print(len(dups))
 
+def createQtable():
+    Q = {}
+    # Want to find a value of state action pairs
+    for state in env.stateSpace:
+        for action in env.possibleActions:
+            Q[state, action] = 0
+    return Q
+
 if __name__ == '__main__':
     # map magic squares to their connecting square
     width = 9
@@ -157,11 +165,7 @@ if __name__ == '__main__':
     discount = 1.0 #Determines the importance of future rewards.
     EPS = 1.0
 
-    Q = {}
-    #Want to find a value of state action pairs
-    for state in env.stateSpace:
-        for action in env.possibleActions:
-            Q[state, action] = 0
+    Q = createQtable()
 
     print(Q)
     print(len(Q))
@@ -175,13 +179,13 @@ if __name__ == '__main__':
         print('starting game ', i)
         if i % 100 == 0:
             print('starting game ', i)
-            #rend = True
-        #    pygame.init()
-        #    win = pygame.display.set_mode((env.w, env.h))
-        #    pygame.display.set_caption("First Game")
-        #else:
-            #rend = False
-            #pygame.quit()
+            rend = True
+            pygame.init()
+            win = pygame.display.set_mode((env.w, env.h))
+            pygame.display.set_caption("First Game")
+        else:
+            rend = False
+            pygame.quit()
 
         done = False
         epRewards = 0
@@ -196,8 +200,8 @@ if __name__ == '__main__':
             observation_, reward, done, info = env.step(action)
             epRewards += reward
 
-            if env.agentPosition == env.goal:
-                print("Agent position :", env.agentPosition, "and Done is: ", done)
+            #if env.agentPosition == env.goal:
+           #   print("Agent position :", env.agentPosition, "and Done is: ", done)
 
             action_ = maxAction(Q, observation_, env.possibleActions)
 
@@ -206,9 +210,9 @@ if __name__ == '__main__':
                         discount*Q[observation_, action_] - Q[observation, action])
             observation = observation_ #Environment has changed state (state = new_state)
 
-            #if rend:
-                #pygame.time.delay(50)
-                #env.render()
+            if rend:
+                pygame.time.delay(50)
+                env.render()
 
         if EPS - 2 / numGames > 0:
             #EPS = math.sqrt(EPS)
