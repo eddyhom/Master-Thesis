@@ -160,7 +160,6 @@ class GridWorld(object):
         pygame.display.update()
         return True
 
-
     def actionSpaceSample(self):
         return np.random.choice(self.possibleActions)
 
@@ -195,6 +194,7 @@ if __name__ == '__main__':
         for action in env.possibleActions:
             Q[state, action] = 0
 
+
     for action in env.possibleActions:
         Q[(0, 0), action] = 0
 
@@ -215,6 +215,7 @@ if __name__ == '__main__':
             rend = True
             pygame.init()
             win = pygame.display.set_mode((500, 500))
+
             pygame.display.set_caption("First Game")
         else:
             rend = False
@@ -256,6 +257,7 @@ if __name__ == '__main__':
             if rend:
                 pygame.time.delay(50)
                 rend = env.render(win)
+
 
         if EPS - 2 / numGames > 0:
             # EPS = math.sqrt(EPS)
