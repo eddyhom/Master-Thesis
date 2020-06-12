@@ -1,0 +1,2 @@
+Gridworld.py Trains the QTable and it saves it in the Qtable.pkl file.
+testQL.py makes 100 different tests to try the Qtable, it loads the Qtable.pkl file and it uses some functions from Gridworld.py (keep in same folder).
