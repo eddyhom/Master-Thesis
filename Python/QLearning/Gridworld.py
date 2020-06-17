@@ -10,26 +10,25 @@ width = 100
 
 
 class GridWorld(object):
-    def __init__(self, w, h):  # m and n, shape of the grid
+    def __init__(self, w, h):  # w and h are the width and height of the space
         self.w = w  # Width
         self.h = h  # Height
-        self.direction = 'E'  # Different directions are East 'E', West 'W', North 'N', South 'S'
 
-        self.agentPosition = [0, 0]  # Robots position
-        self.goal = [self.w, self.h]  # Positive Person
+        self.agentPosition = [0, 0]  # Robots position in x, y coordinates
+        self.goal = [self.w, self.h]  # Positive Person's position in x, y coordinates
 
-        states = []
-        for i in range(self.w + 1):  # Still working on this!!!!!!
-            for j in range(self.h + 1):
-                dx = self.goal[0] - i
-                dy = self.goal[1] - j
-                for quadrant in range(0, 8):
-                    dist = round(sqrt(dx ** 2 + dy ** 2), 2)
-                    if (dist, quadrant) not in states and dist > 0:
+        states = [] # All the discrete states
+        for i in range(self.w + 1):  # Create states from all the distances along the width
+            for j in range(self.h + 1): # Create states from all the distances along the height
+                dx = self.goal[0] - i # Distance to goal from the i:th position
+                dy = self.goal[1] - j # Distance to goal from the j:th position
+                for quadrant in range(0, 8): # Angle to goal from robot according to the x-plane and -y-plane (negative y is positive here) -See getQuadrant()
+                    dist = round(sqrt(dx ** 2 + dy ** 2), 2) #Calculate distance with pythagoras
+                    if (dist, quadrant) not in states and dist > 0: #Add the states to state list, if they're not repeated and if dist is not 0.
                         states.append((dist, quadrant))  # State space distance to goal (for now every meter)
 
-        self.stateSpace = states
-        self.state = states[0]
+        self.stateSpace = states # Here are all the states saved
+        self.state = states[0]  #Initial state
 
         self.possibleActions = ['U', 'D', 'L', 'R', 'UL', 'UR', 'DL', 'DR']  # Possible actions that robot can take
         self.actionSpace = {'U': [0, -1], 'D': [0, 1],
@@ -37,28 +36,29 @@ class GridWorld(object):
                             'UL': [-1, -1], 'UR': [1, -1],
                             'DL': [-1, 1], 'DR': [1, 1]}  # How to take each action
 
-    def isTerminalState(self, state):
-        # print(state)
-        # print("Here im taking away 0: ", state[0]-0)
-        if abs(state[0] - 0) <= 0.01:
-            #   print(True)
+    def isTerminalState(self, state): #Return True if is final state, else return False
+        if abs(state[0] - 0) <= 0.01: #if distance to goal is ~0, robot is in goal
             return True
         else:
-            #  print(False)
             return False
 
-    def setAgentPosition(self, action):  # Takes the new action as input
+    def setAgentPosition(self, action):  # Takes the new action as input and changes robots position and current state based on new position
         self.agentPosition = [self.agentPosition[0] + self.actionSpace[action][0],
                               self.agentPosition[1] + self.actionSpace[action][1]]
         self.state = tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)])
 
-    def offGridMove(self, action):  # Change input if needed
+    def offGridMove(self, action):  #Calculate new position, if new position outside map return True, else False
         position = [self.agentPosition[0] + self.actionSpace[action][0],
                     self.agentPosition[1] + self.actionSpace[action][1]]
 
         return not (0 <= position[0] <= self.w and 0 <= position[1] <= self.h)
 
-    def getQuadrant(self, newPosition):
+    def getQuadrant(self, newPosition): # Get angle to goal from new position
+        #Angles are divided in 8 options, same options as possibleActions Right = R, Up-Right = UR, etc..
+        #The numbers below represent the Directions.
+        # 0 = R, 1 = UR, 2 = U,  3 = UL,  4 = L,   5 = DL,  6 = D,   7 = DR  --- In actions
+        # 0 = 0, 1 = 45, 2 = 90, 3 = 135, 4 = 180, 5 = 225, 6 = 270, 7 = 315 --- In Angles
+
         pos = [self.goal[0] - newPosition[0], self.goal[1] - newPosition[1]]
 
         if pos[0] > 0:
@@ -81,13 +81,13 @@ class GridWorld(object):
             elif pos[1] <= 0:
                 return 5
 
-    def getDist(self, position):
+    def getDist(self, position): #Get distance from robot to goal with pythagoras
         dx = self.goal[0] - position[0]
         dy = self.goal[1] - position[1]
 
         return round(sqrt(dx ** 2 + dy ** 2), 2)
 
-    def getState(self, newState):
+    def getState(self, newState): #Calculate new state by calculating distance and angle.
         resultingPosition = [self.agentPosition[0] + self.actionSpace[newState][0],
                              self.agentPosition[1] + self.actionSpace[newState][1]]
 
@@ -95,44 +95,36 @@ class GridWorld(object):
 
     def giveReward(self, newState, action):
         actionToQuadrant = {'U': 2, 'D': 6, 'L': 4, 'R': 0, \
-                            'UL': 3, 'UR': 1, 'DL': 5, 'DR': 7}
+                            'UL': 3, 'UR': 1, 'DL': 5, 'DR': 7} #Table to translate actions into "angles" - See getQuadrant() for more info
 
         quadrant = newState[1]  # Quadrant we should go
         newQuadrant = actionToQuadrant[action]  # Quadrant we actually going
 
-        x = 6
-        reward = []
-        for i in range(1, 5):
-            reward.append(((quadrant + i) % 8, (quadrant + i + x) % 8))
-            x -= 2
-
         if not self.isTerminalState(newState):
-            if quadrant == newQuadrant:
-                return -1  # Best Case Scenarion where it goes a straigh direction
-            else:
-                difference = [item for item in reward if item[0] == newQuadrant or item[1] == newQuadrant]
-                ind = reward.index(difference[0]) + 2
-                return -5#1 * ind
-        else:
+            if quadrant == newQuadrant: #If we are going in the right direction - give small punishment
+                return -1  # Best Case Scenario where it goes a straight direction
+            else: #If we're not going in the right direction - give bigger punishment
+                return -5
+        else: # If we're at Goal give punishment 0
             return 0
 
     def step(self, action):
-        resultingState = self.getState(action)
+        resultingState = self.getState(action) #Calculate new state based on action taken
 
-        reward = self.giveReward(resultingState, action)
-        if reward == 0:
+        reward = self.giveReward(resultingState, action) #Give reward based on action taken
+        if reward == 0: #If robot at goal, return state = (0,0), reward = 0, Finished = True.
             return (0, 0), 0, True, None
 
-        if not self.offGridMove(action):  # If not moving off grid
-            self.setAgentPosition(action)
+        if not self.offGridMove(action):  # If not moving out of boundaries
+            self.setAgentPosition(action) # Change the current state and return new state, reward, finish..
             return resultingState, reward, \
                    self.isTerminalState(resultingState), None
-        else:
+        else: # If moving out of boundaries, keep same state give greater punishment..
             return tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)]), \
                    -7, \
                    self.isTerminalState([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)]), None
 
-    def reset(self):
+    def reset(self): #Dont mind this, it is changed later on anyways!!!!!!!!! But it's used in testQL.py
         self.goal = [randint(0, self.w), randint(0, self.h)]
         self.agentPosition = [randint(0, self.w), randint(0, self.h)]
         if self.getDist(self.agentPosition) > 0:
@@ -142,72 +134,65 @@ class GridWorld(object):
             self.agentPosition = [0, 0]
             return tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)])
 
-    def render(self, win):
+    def render(self, win): #Draws the robot and goal in a map
         robot_size = 40
 
-        for event in pygame.event.get():
+        for event in pygame.event.get(): #Close window if "X" is clicked
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return False
 
+        pygame.draw.rect(win, (255, 255, 255), (50, 50, 400, 400)) #Draws working space in white
+        pygame.draw.rect(win, (0, 0, 255), (50+self.agentPosition[0]*40, 50+self.agentPosition[1]*40, robot_size, robot_size))#draws robot in blue
+        pygame.draw.rect(win, (0, 255, 0), (50+self.goal[0]*40, 50+self.goal[1]*40, robot_size, robot_size)) #draws goal in green
 
-        pygame.draw.rect(win, (255, 255, 255), (50, 50, 400, 400))
-        pygame.draw.rect(win, (250, 0, 0), (50+self.agentPosition[0]*40, 50+self.agentPosition[1]*40, robot_size, robot_size))
-        pygame.draw.rect(win, (0, 255, 0), (50+self.goal[0]*40, 50+self.goal[1]*40, robot_size, robot_size))
-
-
+        #If you wanna draw negative person uncomment line below and adapt the names to your own - draw negative person in red
+        ##pygame.draw.rect(win, (255, 0, 0), (50+self.negative[0]*40, 50+self.negative[1]*40, robot_size, robot_size)) #draws goal
 
         pygame.display.update()
         return True
 
-    def actionSpaceSample(self):
+    def actionSpaceSample(self): #Choose a random action
         return np.random.choice(self.possibleActions)
 
 
-def maxAction(Q, state, actions):
+def maxAction(Q, state, actions): #Choose best action from current state
     # want to take agents estimate of present value of expected future rewards for state
     # and all possible actions. Also want to take the maximum of that
     values = np.array([Q[state, a] for a in actions])
     action = np.argmax(values)
     return actions[action]
 
-
-def checkIfDuplicates_1(routes):
-    dups = {tuple(x) for x in routes if routes.count(x) > 1}
-    print(dups)
-    print(len(dups))
-
-
 if __name__ == '__main__':
-    # map magic squares to their connecting square
-    width = 9
-    height = 9
-    env = GridWorld(width, height)
+    width = 9 #Width of map
+    height = 9 #Height of map
+    env = GridWorld(width, height) #Create new GridWorld class
+
     # model hyperparameters
     learning_rate = 0.1  # Determines to what extent newly acquired info overrides old info.
     discount = 1.0  # Determines the importance of future rewards.
-    EPS = 1.0
+    EPS = 1.0 # Determines randomness of action taking - High in the beginning low at the end.
 
     Q = {}
-    # Want to find a value of state action pairs
+    # Create a value of state action pairs
     for state in env.stateSpace:
         for action in env.possibleActions:
             Q[state, action] = 0
 
-
+    # Create 0 distance for goal..
     for action in env.possibleActions:
         Q[(0, 0), action] = 0
 
-    numGames = 100000
+    numGames = 100000 #Number of iterations
     stopLearning = numGames * 0.8  # Stop Learning after 80%
     totalRewards = np.zeros(numGames)  # Keeps track of total rewards
-    rend = False
+    rend = False # Rend iteration or not
 
     count = 0
     flag = 0
 
     for i in range(numGames):
-        if i % 2499 == 0:
+        if i % 2499 == 0: #Rend every 2500 iterations
             print('starting game ', i)
             print("This is epReward: ", totalRewards[i - 1])
             print("This is EPS: ", EPS)
@@ -221,10 +206,13 @@ if __name__ == '__main__':
             rend = False
             pygame.quit()
 
-        done = False
-        epRewards = 0
+        done = False # Robot reaches goal
+        epRewards = 0 # Amount of rewards for iteration
 
-        observation = env.reset()  # Reset environment - Returns Agent Position....
+        observation = env.reset()  # Reset environment - Returns Current state
+
+        #Change what happened in reset (this could actually replace what is in env.reset()) but what is in reset its used in testQL.py
+        #in Every iteration it changes robot and goal to opposite corners for a deeper search...
         if count >= 0:
             combi = [[(0, 0), (9, 9)], [(0, 9), (9, 0)]]
             if count > len(combi)-1:
@@ -237,16 +225,15 @@ if __name__ == '__main__':
             count += 1
 
         while not done:
-            # print(done)
             rand = np.random.random()
             action = maxAction(Q, observation, env.possibleActions) if rand < (1 - EPS) \
-                else env.actionSpaceSample()  # Else make a random choice
+                else env.actionSpaceSample()  # Take best action or random action based on EPS
 
             # Get new state and reward from environment
             observation_, reward, done, info = env.step(action)
-            epRewards += reward
+            epRewards += reward # Amount of rewards for this iteration
 
-            action_ = maxAction(Q, observation_, env.possibleActions)
+            action_ = maxAction(Q, observation_, env.possibleActions) #Choose maxAction
 
             # Update Q-Table with new knowledge
             Q[observation, action] = Q[observation, action] + learning_rate * (reward + \
@@ -260,19 +247,15 @@ if __name__ == '__main__':
 
 
         if EPS - 2 / numGames > 0:
-            # EPS = math.sqrt(EPS)
-            EPS -= 1 / stopLearning  # 1 / numGames
+            EPS -= 1 / stopLearning #Lower Randomness after each iteration to start taking Best action instead of random action.
         else:
             EPS = 0
         totalRewards[i] = epRewards
-        if rend:
-            print(epRewards)
 
-    print(Q)
 
-    with open('Qtable.pkl', 'wb') as f:
+    with open('Qtable.pkl', 'wb') as f: # Save QTable as 'Qtable.pkl' you can change name to not overwrite older versions
         pickle.dump([Q, totalRewards], f)
 
-    plt.plot(totalRewards)
-    plt.savefig('8Action_250k_Iterations_v1.1.png')
-    plt.show()
+    plt.plot(totalRewards) #Plot learning
+    plt.savefig('8Action_250k_Iterations_v1.1.png') #Save plot
+    plt.show() #Show plot
