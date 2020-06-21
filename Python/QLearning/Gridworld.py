@@ -16,17 +16,22 @@ class GridWorld(object):
 
         self.agentPosition = [0, 0]  # Robots position in x, y coordinates
         self.goal = [self.w, self.h]  # Positive Person's position in x, y coordinates
+        self.negative = [self.w, self.h] #Negative person's position in x and y
 
         states = [] # All the discrete states
         for i in range(self.w + 1):  # Create states from all the distances along the width
             for j in range(self.h + 1): # Create states from all the distances along the height
                 dx = self.goal[0] - i # Distance to goal from the i:th position
                 dy = self.goal[1] - j # Distance to goal from the j:th position
+                dnx = self.negative[0] - i
+                dny = self.negative[1] - j
                 for quadrant in range(0, 8): # Angle to goal from robot according to the x-plane and -y-plane (negative y is positive here) -See getQuadrant()
                     dist = round(sqrt(dx ** 2 + dy ** 2), 2) #Calculate distance with pythagoras
+                    ndist = round(sqrt(dx ** 2 + dy ** 2), 2)
                     if (dist, quadrant) not in states and dist > 0: #Add the states to state list, if they're not repeated and if dist is not 0.
                         states.append((dist, quadrant))  # State space distance to goal (for now every meter)
-
+                    elif (ndist, quadrant) not in states and ndist > 0:
+                        states.append((ndist, quadrant))
         self.stateSpace = states # Here are all the states saved
         self.state = states[0]  #Initial state
 
@@ -61,7 +66,28 @@ class GridWorld(object):
 
         pos = [self.goal[0] - newPosition[0], self.goal[1] - newPosition[1]]
 
+
         if pos[0] > 0:
+            if pos[1] > 0:
+                return 7
+            elif pos[1] < 0:
+                return 1
+            else:
+                return 0
+        elif pos[0] < 0:
+            if pos[1] > 0: #[-1, 1] => DL = 5 ?
+                return 5
+            elif pos[1] < 0:
+                return 3
+            else:
+                return 4
+        else:
+            if pos[1] > 0:
+                return 6
+            elif pos[1] < 0:
+                return 2
+
+        '''if pos[0] > 0:
             if pos[1] > 0:
                 return 3
             elif pos[1] < 0:
@@ -69,7 +95,7 @@ class GridWorld(object):
             else:
                 return 4
         elif pos[0] < 0:
-            if pos[1] > 0:
+            if pos[1] > 0: #[-1, 1] => DL = 5 ?
                 return 2
             elif pos[1] < 0:
                 return 1
@@ -79,19 +105,67 @@ class GridWorld(object):
             if pos[1] > 0:
                 return 7
             elif pos[1] <= 0:
-                return 5
+                return 5'''
+
+
 
     def getDist(self, position): #Get distance from robot to goal with pythagoras
         dx = self.goal[0] - position[0]
         dy = self.goal[1] - position[1]
 
+
         return round(sqrt(dx ** 2 + dy ** 2), 2)
+
+
+
+    def getnegQuadrant(self, newPosition): # Get angle to goal from new position
+        #Angles are divided in 8 options, same options as possibleActions Right = R, Up-Right = UR, etc..
+        #The numbers below represent the Directions.
+        # 0 = R, 1 = UR, 2 = U,  3 = UL,  4 = L,   5 = DL,  6 = D,   7 = DR  --- In actions
+        # 0 = 0, 1 = 45, 2 = 90, 3 = 135, 4 = 180, 5 = 225, 6 = 270, 7 = 315 --- In Angles
+
+        pos = [self.negative[0] - newPosition[0], self.negative[1] - newPosition[1]]
+
+
+        if pos[0] > 0:
+            if pos[1] > 0:
+                return 7
+            elif pos[1] < 0:
+                return 1
+            else:
+                return 0
+        elif pos[0] < 0:
+            if pos[1] > 0: #[-1, 1] => DL = 5 ?
+                return 5
+            elif pos[1] < 0:
+                return 3
+            else:
+                return 4
+        else:
+            if pos[1] > 0:
+                return 6
+            elif pos[1] < 0:
+                return 2
+
+    def getnegDist(self, position):
+        dx = self.negative[0] - position[0]
+        dy = self.negative[1] - position[1]
+
+        nearby = False
+
+        if round(sqrt(dx ** 2 + dy ** 2), 2) < 1:
+            nearby = True
+
+        return nearby
 
     def getState(self, newState): #Calculate new state by calculating distance and angle.
         resultingPosition = [self.agentPosition[0] + self.actionSpace[newState][0],
                              self.agentPosition[1] + self.actionSpace[newState][1]]
 
-        return tuple([self.getDist(resultingPosition), self.getQuadrant(resultingPosition)])
+        return tuple([self.getDist(resultingPosition), self.getnegDist(resultingPosition), \
+                      self.getnegQuadrant(resultingPosition), self.getQuadrant(resultingPosition)])
+
+
 
     def giveReward(self, newState, action):
         actionToQuadrant = {'U': 2, 'D': 6, 'L': 4, 'R': 0, \
@@ -147,7 +221,7 @@ class GridWorld(object):
         pygame.draw.rect(win, (0, 255, 0), (50+self.goal[0]*40, 50+self.goal[1]*40, robot_size, robot_size)) #draws goal in green
 
         #If you wanna draw negative person uncomment line below and adapt the names to your own - draw negative person in red
-        ##pygame.draw.rect(win, (255, 0, 0), (50+self.negative[0]*40, 50+self.negative[1]*40, robot_size, robot_size)) #draws goal
+        pygame.draw.rect(win, (255, 0, 0), (50+self.negative[0]*40, 50+self.negative[1]*40, robot_size, robot_size)) #draws goal
 
         pygame.display.update()
         return True
@@ -259,3 +333,6 @@ if __name__ == '__main__':
     plt.plot(totalRewards) #Plot learning
     plt.savefig('8Action_250k_Iterations_v1.1.png') #Save plot
     plt.show() #Show plot
+
+
+
