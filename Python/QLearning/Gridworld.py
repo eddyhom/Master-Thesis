@@ -16,22 +16,20 @@ class GridWorld(object):
 
         self.agentPosition = [0, 0]  # Robots position in x, y coordinates
         self.goal = [self.w, self.h]  # Positive Person's position in x, y coordinates
-        self.negative = [self.w, self.h] #Negative person's position in x and y
+        x, y = ceil(self.w/2, self.h/2)
+        self.negative = [x, y] #Negative person's position in x and y
 
         states = [] # All the discrete states
         for i in range(self.w + 1):  # Create states from all the distances along the width
             for j in range(self.h + 1): # Create states from all the distances along the height
                 dx = self.goal[0] - i # Distance to goal from the i:th position
                 dy = self.goal[1] - j # Distance to goal from the j:th position
-                dnx = self.negative[0] - i
-                dny = self.negative[1] - j
                 for quadrant in range(0, 8): # Angle to goal from robot according to the x-plane and -y-plane (negative y is positive here) -See getQuadrant()
-                    dist = round(sqrt(dx ** 2 + dy ** 2), 2) #Calculate distance with pythagoras
-                    ndist = round(sqrt(dx ** 2 + dy ** 2), 2)
-                    if (dist, quadrant) not in states and dist > 0: #Add the states to state list, if they're not repeated and if dist is not 0.
-                        states.append((dist, quadrant))  # State space distance to goal (for now every meter)
-                    elif (ndist, quadrant) not in states and ndist > 0:
-                        states.append((ndist, quadrant))
+                    for quadrant2 in range(0,8):
+                      dist = round(sqrt(dx ** 2 + dy ** 2), 2) #Calculate distance with pythagoras
+                      if (dist, quadrant, dist2, quadrant2) not in states and dist > 0: #Add the states to state list, if they're not repeated and if dist is not 0.
+                        states.append((dist, quadrant, dist2, quadrant2))  # State space distance to goal (for now every meter)
+
         self.stateSpace = states # Here are all the states saved
         self.state = states[0]  #Initial state
 
@@ -50,7 +48,8 @@ class GridWorld(object):
     def setAgentPosition(self, action):  # Takes the new action as input and changes robots position and current state based on new position
         self.agentPosition = [self.agentPosition[0] + self.actionSpace[action][0],
                               self.agentPosition[1] + self.actionSpace[action][1]]
-        self.state = tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)])
+        self.state = tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+                            self.getDist(self.agentPosition, self.negative), self.getQuadrant(self.agentPosition, self.negative)])
 
     def offGridMove(self, action):  #Calculate new position, if new position outside map return True, else False
         position = [self.agentPosition[0] + self.actionSpace[action][0],
@@ -58,13 +57,13 @@ class GridWorld(object):
 
         return not (0 <= position[0] <= self.w and 0 <= position[1] <= self.h)
 
-    def getQuadrant(self, newPosition): # Get angle to goal from new position
+    def getQuadrant(self, newPosition, person): # Get angle to goal from new position
         #Angles are divided in 8 options, same options as possibleActions Right = R, Up-Right = UR, etc..
         #The numbers below represent the Directions.
         # 0 = R, 1 = UR, 2 = U,  3 = UL,  4 = L,   5 = DL,  6 = D,   7 = DR  --- In actions
         # 0 = 0, 1 = 45, 2 = 90, 3 = 135, 4 = 180, 5 = 225, 6 = 270, 7 = 315 --- In Angles
 
-        pos = [self.goal[0] - newPosition[0], self.goal[1] - newPosition[1]]
+        pos = [self.person[0] - newPosition[0], self.person[1] - newPosition[1]]
 
 
         if pos[0] > 0:
@@ -87,83 +86,31 @@ class GridWorld(object):
             elif pos[1] < 0:
                 return 2
 
-        '''if pos[0] > 0:
-            if pos[1] > 0:
-                return 3
-            elif pos[1] < 0:
-                return 0
-            else:
-                return 4
-        elif pos[0] < 0:
-            if pos[1] > 0: #[-1, 1] => DL = 5 ?
-                return 2
-            elif pos[1] < 0:
-                return 1
-            else:
-                return 6
-        else:
-            if pos[1] > 0:
-                return 7
-            elif pos[1] <= 0:
-                return 5'''
 
 
-
-    def getDist(self, position): #Get distance from robot to goal with pythagoras
-        dx = self.goal[0] - position[0]
-        dy = self.goal[1] - position[1]
+    def getDist(self, position, person): #Get distance from robot to goal with pythagoras
+        dx = self.person[0] - position[0]
+        dy = self.person[1] - position[1]
 
 
         return round(sqrt(dx ** 2 + dy ** 2), 2)
 
 
-
-    def getnegQuadrant(self, newPosition): # Get angle to goal from new position
-        #Angles are divided in 8 options, same options as possibleActions Right = R, Up-Right = UR, etc..
-        #The numbers below represent the Directions.
-        # 0 = R, 1 = UR, 2 = U,  3 = UL,  4 = L,   5 = DL,  6 = D,   7 = DR  --- In actions
-        # 0 = 0, 1 = 45, 2 = 90, 3 = 135, 4 = 180, 5 = 225, 6 = 270, 7 = 315 --- In Angles
-
-        pos = [self.negative[0] - newPosition[0], self.negative[1] - newPosition[1]]
-
-
-        if pos[0] > 0:
-            if pos[1] > 0:
-                return 7
-            elif pos[1] < 0:
-                return 1
-            else:
-                return 0
-        elif pos[0] < 0:
-            if pos[1] > 0: #[-1, 1] => DL = 5 ?
-                return 5
-            elif pos[1] < 0:
-                return 3
-            else:
-                return 4
-        else:
-            if pos[1] > 0:
-                return 6
-            elif pos[1] < 0:
-                return 2
-
-    def getnegDist(self, position):
-        dx = self.negative[0] - position[0]
-        dy = self.negative[1] - position[1]
-
-        nearby = False
-
-        if round(sqrt(dx ** 2 + dy ** 2), 2) < 1:
-            nearby = True
-
-        return nearby
-
     def getState(self, newState): #Calculate new state by calculating distance and angle.
         resultingPosition = [self.agentPosition[0] + self.actionSpace[newState][0],
                              self.agentPosition[1] + self.actionSpace[newState][1]]
 
-        return tuple([self.getDist(resultingPosition), self.getnegDist(resultingPosition), \
-                      self.getnegQuadrant(resultingPosition), self.getQuadrant(resultingPosition)])
+        negative_dist = self.getDist(resultingPosition, self.negative)
+
+        if negative_dist > 1:
+            nearby = False
+            quadrant2 = 0
+        else:
+            nearby = True
+            quadrant2 = self.getQuadrant(resultingPosition, self.negative)
+
+
+        return tuple([self.getDist(resultingPosition, self.goal), self.getQuadrant(resultingPosition, self.goal), nearby, quadrant2])
 
 
 
@@ -175,6 +122,11 @@ class GridWorld(object):
         newQuadrant = actionToQuadrant[action]  # Quadrant we actually going
 
         if not self.isTerminalState(newState):
+            if newState[2] == True:
+                if newState[3] == newQuadrant:
+                    return -3
+                else:
+                    return -10
             if quadrant == newQuadrant: #If we are going in the right direction - give small punishment
                 return -1  # Best Case Scenario where it goes a straight direction
             else: #If we're not going in the right direction - give bigger punishment
@@ -194,19 +146,19 @@ class GridWorld(object):
             return resultingState, reward, \
                    self.isTerminalState(resultingState), None
         else: # If moving out of boundaries, keep same state give greater punishment..
-            return tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)]), \
+            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)]), \
                    -7, \
-                   self.isTerminalState([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)]), None
+                   self.isTerminalState([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)]), None
 
     def reset(self): #Dont mind this, it is changed later on anyways!!!!!!!!! But it's used in testQL.py
         self.goal = [randint(0, self.w), randint(0, self.h)]
         self.agentPosition = [randint(0, self.w), randint(0, self.h)]
-        if self.getDist(self.agentPosition) > 0:
-            return tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)])
+        if self.getDist(self.agentPosition, self.goal) > 0:
+            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)])
         else:
             self.goal = [self.w, self.h]
             self.agentPosition = [0, 0]
-            return tuple([self.getDist(self.agentPosition), self.getQuadrant(self.agentPosition)])
+            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)])
 
     def render(self, win): #Draws the robot and goal in a map
         robot_size = 40
