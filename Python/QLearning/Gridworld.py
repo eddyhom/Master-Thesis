@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame
-from math import floor, sqrt
+from math import floor, sqrt, ceil
 import pickle
 from random import randint
 
@@ -16,7 +16,7 @@ class GridWorld(object):
 
         self.agentPosition = [0, 0]  # Robots position in x, y coordinates
         self.goal = [self.w, self.h]  # Positive Person's position in x, y coordinates
-        x, y = ceil(self.w/2, self.h/2)
+        x, y = ceil(self.w/2), ceil(self.h/2)
         self.negative = [x, y] #Negative person's position in x and y
 
         states = [] # All the discrete states
@@ -27,8 +27,14 @@ class GridWorld(object):
                 for quadrant in range(0, 8): # Angle to goal from robot according to the x-plane and -y-plane (negative y is positive here) -See getQuadrant()
                     for quadrant2 in range(0,8):
                       dist = round(sqrt(dx ** 2 + dy ** 2), 2) #Calculate distance with pythagoras
-                      if (dist, quadrant, dist2, quadrant2) not in states and dist > 0: #Add the states to state list, if they're not repeated and if dist is not 0.
-                        states.append((dist, quadrant, dist2, quadrant2))  # State space distance to goal (for now every meter)
+                      for distance in range(2):
+                          near = True
+                          if distance != 1:
+                              near = False
+
+                      if (dist, quadrant, near, quadrant2) not in states and dist > 0: #Add the states to state list, if they're not repeated and if dist is not 0.
+                          if near == False:
+                              states.append((dist, quadrant, near, quadrant2))  # State space distance to goal (for now every meter)
 
         self.stateSpace = states # Here are all the states saved
         self.state = states[0]  #Initial state
@@ -102,8 +108,9 @@ class GridWorld(object):
 
         negative_dist = self.getDist(resultingPosition, self.negative)
 
+        nearby = False
+
         if negative_dist > 1:
-            nearby = False
             quadrant2 = 0
         else:
             nearby = True
@@ -124,9 +131,9 @@ class GridWorld(object):
         if not self.isTerminalState(newState):
             if newState[2] == True:
                 if newState[3] == newQuadrant:
-                    return -3
-                else:
                     return -10
+                else:
+                    return -3
             if quadrant == newQuadrant: #If we are going in the right direction - give small punishment
                 return -1  # Best Case Scenario where it goes a straight direction
             else: #If we're not going in the right direction - give bigger punishment
@@ -139,26 +146,30 @@ class GridWorld(object):
 
         reward = self.giveReward(resultingState, action) #Give reward based on action taken
         if reward == 0: #If robot at goal, return state = (0,0), reward = 0, Finished = True.
-            return (0, 0), 0, True, None
+            return (0, 0, 0, 0), 0, True, None
 
         if not self.offGridMove(action):  # If not moving out of boundaries
             self.setAgentPosition(action) # Change the current state and return new state, reward, finish..
             return resultingState, reward, \
                    self.isTerminalState(resultingState), None
         else: # If moving out of boundaries, keep same state give greater punishment..
-            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)]), \
+            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+                          self.getDist(self.agentPosition, self.negative), self.getQuadrant(self.agentPosition, self.negative)]), \
                    -7, \
-                   self.isTerminalState([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)]), None
+                   self.isTerminalState([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+                                         self.getDist(self.agentPosition, self.negative), self.getQuadrant(self.agentPosition, self.negative)]), None
 
     def reset(self): #Dont mind this, it is changed later on anyways!!!!!!!!! But it's used in testQL.py
         self.goal = [randint(0, self.w), randint(0, self.h)]
         self.agentPosition = [randint(0, self.w), randint(0, self.h)]
         if self.getDist(self.agentPosition, self.goal) > 0:
-            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)])
+            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+                          self.getDist(self.agentPosition, self.negative), self.getQuadrant(self.agentPosition, self.negative)])
         else:
             self.goal = [self.w, self.h]
             self.agentPosition = [0, 0]
-            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal)])
+            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+                          self.getDist(self.agentPosition, self.negative), self.getQuadrant(self.agentPosition, self.negative)])
 
     def render(self, win): #Draws the robot and goal in a map
         robot_size = 40
@@ -192,6 +203,7 @@ def maxAction(Q, state, actions): #Choose best action from current state
 if __name__ == '__main__':
     width = 9 #Width of map
     height = 9 #Height of map
+
     env = GridWorld(width, height) #Create new GridWorld class
 
     # model hyperparameters
@@ -247,7 +259,8 @@ if __name__ == '__main__':
 
             env.goal = [combi[count][flag % 2][0], combi[count][flag % 2][1]]
             env.agentPosition = [combi[count][(flag+1) % 2][0], combi[count][(flag+1) % 2][1]]
-            observation = tuple([env.getDist(env.agentPosition), env.getQuadrant(env.agentPosition)])
+            observation = tuple([env.getDist(env.agentPosition, env.goal), env.getQuadrant(env.agentPosition, env.goal),
+                                 env.getDist(env.agentPosition, env.negative), env.getQuadrant(env.agentPosition, env.negative)])
             count += 1
 
         while not done:
