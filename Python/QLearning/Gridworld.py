@@ -36,7 +36,7 @@ class GridWorld(object):
                            if near == True:
                               states.append((dist, quadrant, near, quadrant2))  # State space distance to goal (for now every meter)
                            else:
-                               state.append((dist, quadrant, near, 0))
+                               states.append((dist, quadrant, near, 0))
 
 
         self.stateSpace = states # Here are all the states saved
