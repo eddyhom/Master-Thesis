@@ -29,5 +29,3 @@ for i in range(100): #Try 100 random options to test QLearning
         rend = env.render(win) # Render whats going on.
 
 pygame.quit() #Close window
-
-
