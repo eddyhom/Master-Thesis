@@ -301,6 +301,3 @@ if __name__ == '__main__':
     plt.plot(totalRewards) #Plot learning
     plt.savefig('8Action_250k_Iterations_v1.1.png') #Save plot
     plt.show() #Show plot
-
-
-

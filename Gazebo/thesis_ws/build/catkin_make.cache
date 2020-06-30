@@ -1,0 +1,2 @@
+add_jeff
+-DCATKIN_DEVEL_PREFIX=/home/peter/thesis_ws/devel -DCMAKE_INSTALL_PREFIX=/home/peter/thesis_ws/install -G Unix Makefiles
