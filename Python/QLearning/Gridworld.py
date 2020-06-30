@@ -72,7 +72,7 @@ class GridWorld(object):
         # 0 = R, 1 = UR, 2 = U,  3 = UL,  4 = L,   5 = DL,  6 = D,   7 = DR  --- In actions
         # 0 = 0, 1 = 45, 2 = 90, 3 = 135, 4 = 180, 5 = 225, 6 = 270, 7 = 315 --- In Angles
 
-        pos = [self.person[0] - newPosition[0], self.person[1] - newPosition[1]]
+        pos = [person[0] - newPosition[0], person[1] - newPosition[1]]
 
 
         if pos[0] > 0:
@@ -98,8 +98,8 @@ class GridWorld(object):
 
 
     def getDist(self, position, person): #Get distance from robot to goal with pythagoras
-        dx = self.person[0] - position[0]
-        dy = self.person[1] - position[1]
+        dx = person[0] - position[0]
+        dy = person[1] - position[1]
 
 
         return round(sqrt(dx ** 2 + dy ** 2), 2)
