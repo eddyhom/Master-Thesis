@@ -54,11 +54,11 @@ class GridWorld(object):
         else:
             return False
 
-    def setAgentPosition(self, action):  # Takes the new action as input and changes robots position and current state based on new position
+    def setAgentPosition(self, action, newState):  # Takes the new action as input and changes robots position and current state based on new position
         self.agentPosition = [self.agentPosition[0] + self.actionSpace[action][0],
                               self.agentPosition[1] + self.actionSpace[action][1]]
-        self.state = tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                            True, self.getQuadrant(self.agentPosition, self.negative)])
+        self.state = self.getState(newState) #tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+       # self.state = newState                   # True, self.getQuadrant(self.agentPosition, self.negative)])
 
     def offGridMove(self, action):  #Calculate new position, if new position outside map return True, else False
         position = [self.agentPosition[0] + self.actionSpace[action][0],
@@ -112,10 +112,9 @@ class GridWorld(object):
         negative_dist = self.getDist(resultingPosition, self.negative)
 
         nearby = False
+        quadrant2 = 0
 
-        if negative_dist > 1:
-            quadrant2 = 0
-        else:
+        if negative_dist < 1:
             nearby = True
             quadrant2 = self.getQuadrant(resultingPosition, self.negative)
 
@@ -152,27 +151,23 @@ class GridWorld(object):
             return (0, 0, False, 0), 0, True, None
 
         if not self.offGridMove(action):  # If not moving out of boundaries
-            self.setAgentPosition(action) # Change the current state and return new state, reward, finish..
+            self.setAgentPosition(action, resultingState) # Change the current state and return new state, reward, finish..
             return resultingState, reward, \
-                   self.isTerminalState(resultingState), None
+                   self.isTerminalState(self.state), None
         else: # If moving out of boundaries, keep same state give greater punishment..
-            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          False, self.getQuadrant(self.agentPosition, self.negative)]), \
-                   -7, \
-                   self.isTerminalState([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                                         True, self.getQuadrant(self.agentPosition, self.negative)]), None
+            return self.state, -7, self.isTerminalState(self.state), None
 
     def reset(self): #Dont mind this, it is changed later on anyways!!!!!!!!! But it's used in testQL.py
         self.goal = [randint(0, self.w), randint(0, self.h)]
         self.agentPosition = [randint(0, self.w), randint(0, self.h)]
         if self.getDist(self.agentPosition, self.goal) > 0:
             return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          True, self.getQuadrant(self.agentPosition, self.negative)])
+                          False, 0])
         else:
             self.goal = [self.w, self.h]
             self.agentPosition = [0, 0]
             return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          False, self.getQuadrant(self.agentPosition, self.negative)])
+                          False,0])
 
     def render(self, win): #Draws the robot and goal in a map
         robot_size = 40
@@ -222,7 +217,7 @@ if __name__ == '__main__':
 
     # Create 0 distance for goal..
     for action in env.possibleActions:
-        Q[(0, 0), action] = 0
+        Q[(0, 0, False, 0), action] = 0
 
     numGames = 100000 #Number of iterations
     stopLearning = numGames * 0.8  # Stop Learning after 80%
@@ -263,7 +258,7 @@ if __name__ == '__main__':
             env.goal = [combi[count][flag % 2][0], combi[count][flag % 2][1]]
             env.agentPosition = [combi[count][(flag+1) % 2][0], combi[count][(flag+1) % 2][1]]
             observation = tuple([env.getDist(env.agentPosition, env.goal), env.getQuadrant(env.agentPosition, env.goal),
-                                 env.getDist(env.agentPosition, env.negative), env.getQuadrant(env.agentPosition, env.negative)])
+                                 False, 0])
             count += 1
 
         while not done:
