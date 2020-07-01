@@ -57,8 +57,8 @@ class GridWorld(object):
     def setAgentPosition(self, action, newState):  # Takes the new action as input and changes robots position and current state based on new position
         self.agentPosition = [self.agentPosition[0] + self.actionSpace[action][0],
                               self.agentPosition[1] + self.actionSpace[action][1]]
-        self.state = self.getState(newState) #tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-       # self.state = newState                   # True, self.getQuadrant(self.agentPosition, self.negative)])
+        #self.state = self.getState(newState) #tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+        self.state = newState                   # True, self.getQuadrant(self.agentPosition, self.negative)])
 
     def offGridMove(self, action):  #Calculate new position, if new position outside map return True, else False
         position = [self.agentPosition[0] + self.actionSpace[action][0],
@@ -124,7 +124,7 @@ class GridWorld(object):
 
 
     def giveReward(self, newState, action):
-        actionToQuadrant = {'U': 2, 'D': 6, 'L': 4, 'R': 0, \
+        actionToQuadrant = {'U': 2, 'D': 6, 'L': 4, 'R': 0,
                             'UL': 3, 'UR': 1, 'DL': 5, 'DR': 7} #Table to translate actions into "angles" - See getQuadrant() for more info
 
         quadrant = newState[1]  # Quadrant we should go
@@ -167,7 +167,7 @@ class GridWorld(object):
             self.goal = [self.w, self.h]
             self.agentPosition = [0, 0]
             return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          False,0])
+                          False, 0])
 
     def render(self, win): #Draws the robot and goal in a map
         robot_size = 40
