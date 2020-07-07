@@ -36,7 +36,7 @@ class GridWorld(object):
                            if near == True:
                               states.append((dist, quadrant, near, quadrant2))  # State space distance to goal (for now every meter)
                            else:
-                               state.append((dist, quadrant, near, 0))
+                               states.append((dist, quadrant, near, 0))
 
 
         self.stateSpace = states # Here are all the states saved
@@ -54,11 +54,11 @@ class GridWorld(object):
         else:
             return False
 
-    def setAgentPosition(self, action):  # Takes the new action as input and changes robots position and current state based on new position
+    def setAgentPosition(self, action, newState):  # Takes the new action as input and changes robots position and current state based on new position
         self.agentPosition = [self.agentPosition[0] + self.actionSpace[action][0],
                               self.agentPosition[1] + self.actionSpace[action][1]]
-        self.state = tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                            True, self.getQuadrant(self.agentPosition, self.negative)])
+        #self.state = self.getState(newState) #tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
+        self.state = newState                   # True, self.getQuadrant(self.agentPosition, self.negative)])
 
     def offGridMove(self, action):  #Calculate new position, if new position outside map return True, else False
         position = [self.agentPosition[0] + self.actionSpace[action][0],
@@ -72,7 +72,7 @@ class GridWorld(object):
         # 0 = R, 1 = UR, 2 = U,  3 = UL,  4 = L,   5 = DL,  6 = D,   7 = DR  --- In actions
         # 0 = 0, 1 = 45, 2 = 90, 3 = 135, 4 = 180, 5 = 225, 6 = 270, 7 = 315 --- In Angles
 
-        pos = [self.person[0] - newPosition[0], self.person[1] - newPosition[1]]
+        pos = [person[0] - newPosition[0], person[1] - newPosition[1]]
 
 
         if pos[0] > 0:
@@ -98,8 +98,8 @@ class GridWorld(object):
 
 
     def getDist(self, position, person): #Get distance from robot to goal with pythagoras
-        dx = self.person[0] - position[0]
-        dy = self.person[1] - position[1]
+        dx = person[0] - position[0]
+        dy = person[1] - position[1]
 
 
         return round(sqrt(dx ** 2 + dy ** 2), 2)
@@ -112,12 +112,17 @@ class GridWorld(object):
         negative_dist = self.getDist(resultingPosition, self.negative)
 
         nearby = False
+        quadrant2 = 0
 
-        if negative_dist > 1:
-            quadrant2 = 0
-        else:
+
+
+        if negative_dist < 1.5:
             nearby = True
             quadrant2 = self.getQuadrant(resultingPosition, self.negative)
+
+            if negative_dist == 0:
+                self.giveReward(newState, resultingPosition)
+
 
 
         return tuple([self.getDist(resultingPosition, self.goal), self.getQuadrant(resultingPosition, self.goal), nearby, quadrant2])
@@ -125,11 +130,12 @@ class GridWorld(object):
 
 
     def giveReward(self, newState, action):
-        actionToQuadrant = {'U': 2, 'D': 6, 'L': 4, 'R': 0, \
+        actionToQuadrant = {'U': 2, 'D': 6, 'L': 4, 'R': 0,
                             'UL': 3, 'UR': 1, 'DL': 5, 'DR': 7} #Table to translate actions into "angles" - See getQuadrant() for more info
 
         quadrant = newState[1]  # Quadrant we should go
         newQuadrant = actionToQuadrant[action]  # Quadrant we actually going
+
 
         if not self.isTerminalState(newState):
             if newState[2] == True:
@@ -141,7 +147,9 @@ class GridWorld(object):
                 return -1  # Best Case Scenario where it goes a straight direction
             else: #If we're not going in the right direction - give bigger punishment
                 return -5
-        else: # If we're at Goal give punishment 0
+        elif self.isTerminalState(newState) and newState[2]==True: # If we're at Goal give punishment 0
+            return -50
+        else:
             return 0
 
     def step(self, action):
@@ -152,27 +160,23 @@ class GridWorld(object):
             return (0, 0, False, 0), 0, True, None
 
         if not self.offGridMove(action):  # If not moving out of boundaries
-            self.setAgentPosition(action) # Change the current state and return new state, reward, finish..
+            self.setAgentPosition(action, resultingState) # Change the current state and return new state, reward, finish..
             return resultingState, reward, \
-                   self.isTerminalState(resultingState), None
+                   self.isTerminalState(self.state), None
         else: # If moving out of boundaries, keep same state give greater punishment..
-            return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          False, self.getQuadrant(self.agentPosition, self.negative)]), \
-                   -7, \
-                   self.isTerminalState([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                                         True, self.getQuadrant(self.agentPosition, self.negative)]), None
+            return self.state, -7, self.isTerminalState(self.state), None
 
     def reset(self): #Dont mind this, it is changed later on anyways!!!!!!!!! But it's used in testQL.py
         self.goal = [randint(0, self.w), randint(0, self.h)]
         self.agentPosition = [randint(0, self.w), randint(0, self.h)]
         if self.getDist(self.agentPosition, self.goal) > 0:
             return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          True, self.getQuadrant(self.agentPosition, self.negative)])
+                          False, 0])
         else:
             self.goal = [self.w, self.h]
             self.agentPosition = [0, 0]
             return tuple([self.getDist(self.agentPosition, self.goal), self.getQuadrant(self.agentPosition, self.goal),
-                          False, self.getQuadrant(self.agentPosition, self.negative)])
+                          False, 0])
 
     def render(self, win): #Draws the robot and goal in a map
         robot_size = 40
@@ -220,9 +224,12 @@ if __name__ == '__main__':
         for action in env.possibleActions:
             Q[state, action] = 0
 
+
+
     # Create 0 distance for goal..
     for action in env.possibleActions:
-        Q[(0, 0), action] = 0
+        Q[(0, 0, False, 0), action] = 0
+
 
     numGames = 100000 #Number of iterations
     stopLearning = numGames * 0.8  # Stop Learning after 80%
@@ -263,7 +270,7 @@ if __name__ == '__main__':
             env.goal = [combi[count][flag % 2][0], combi[count][flag % 2][1]]
             env.agentPosition = [combi[count][(flag+1) % 2][0], combi[count][(flag+1) % 2][1]]
             observation = tuple([env.getDist(env.agentPosition, env.goal), env.getQuadrant(env.agentPosition, env.goal),
-                                 env.getDist(env.agentPosition, env.negative), env.getQuadrant(env.agentPosition, env.negative)])
+                                 False, 0])
             count += 1
 
         while not done:
@@ -277,6 +284,7 @@ if __name__ == '__main__':
 
             action_ = maxAction(Q, observation_, env.possibleActions) #Choose maxAction
 
+
             # Update Q-Table with new knowledge
             Q[observation, action] = Q[observation, action] + learning_rate * (reward + \
                                                                                discount * Q[observation_, action_] - Q[
@@ -286,13 +294,14 @@ if __name__ == '__main__':
             if rend:
                 pygame.time.delay(50)
                 rend = env.render(win)
-
+            print(Q)
 
         if EPS - 2 / numGames > 0:
             EPS -= 1 / stopLearning #Lower Randomness after each iteration to start taking Best action instead of random action.
         else:
             EPS = 0
         totalRewards[i] = epRewards
+
 
 
     with open('Qtable.pkl', 'wb') as f: # Save QTable as 'Qtable.pkl' you can change name to not overwrite older versions
