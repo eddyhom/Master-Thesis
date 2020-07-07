@@ -114,9 +114,15 @@ class GridWorld(object):
         nearby = False
         quadrant2 = 0
 
-        if negative_dist < 1:
+
+
+        if negative_dist < 1.5:
             nearby = True
             quadrant2 = self.getQuadrant(resultingPosition, self.negative)
+
+            if negative_dist == 0:
+                self.giveReward(newState, resultingPosition)
+
 
 
         return tuple([self.getDist(resultingPosition, self.goal), self.getQuadrant(resultingPosition, self.goal), nearby, quadrant2])
@@ -130,6 +136,7 @@ class GridWorld(object):
         quadrant = newState[1]  # Quadrant we should go
         newQuadrant = actionToQuadrant[action]  # Quadrant we actually going
 
+
         if not self.isTerminalState(newState):
             if newState[2] == True:
                 if newState[3] == newQuadrant:
@@ -140,7 +147,9 @@ class GridWorld(object):
                 return -1  # Best Case Scenario where it goes a straight direction
             else: #If we're not going in the right direction - give bigger punishment
                 return -5
-        else: # If we're at Goal give punishment 0
+        elif self.isTerminalState(newState) and newState[2]==True: # If we're at Goal give punishment 0
+            return -50
+        else:
             return 0
 
     def step(self, action):
@@ -215,9 +224,12 @@ if __name__ == '__main__':
         for action in env.possibleActions:
             Q[state, action] = 0
 
+
+
     # Create 0 distance for goal..
     for action in env.possibleActions:
         Q[(0, 0, False, 0), action] = 0
+
 
     numGames = 100000 #Number of iterations
     stopLearning = numGames * 0.8  # Stop Learning after 80%
@@ -272,6 +284,7 @@ if __name__ == '__main__':
 
             action_ = maxAction(Q, observation_, env.possibleActions) #Choose maxAction
 
+
             # Update Q-Table with new knowledge
             Q[observation, action] = Q[observation, action] + learning_rate * (reward + \
                                                                                discount * Q[observation_, action_] - Q[
@@ -281,13 +294,14 @@ if __name__ == '__main__':
             if rend:
                 pygame.time.delay(50)
                 rend = env.render(win)
-
+            print(Q)
 
         if EPS - 2 / numGames > 0:
             EPS -= 1 / stopLearning #Lower Randomness after each iteration to start taking Best action instead of random action.
         else:
             EPS = 0
         totalRewards[i] = epRewards
+
 
 
     with open('Qtable.pkl', 'wb') as f: # Save QTable as 'Qtable.pkl' you can change name to not overwrite older versions
