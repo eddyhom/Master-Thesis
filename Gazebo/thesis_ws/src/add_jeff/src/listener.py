@@ -4,7 +4,7 @@ from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Point, Twist
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
-from math import atan2, pi, sqrt
+from math import atan2, pi, sqrt, floor
 import pickle
 import Gridworld #We use the training code for the class GridWorld
 
@@ -21,7 +21,7 @@ class setRobotPosition(object):
 		
 		self.speed = Twist()
 
-		self.discreteDist = self.discDist()
+		self.discreteDist, self.discreteDist2  = self.discDist()
 		self.discreteAng = self.discAng()
 
 		self.Q = self.getQ()
@@ -29,6 +29,9 @@ class setRobotPosition(object):
 		
 		self.actionSpace = {'R': 0, 'UR': 1, 'U': 2,  'UL': 3, 
 				    'L': 4 ,'DL': 5, 'D': 6, 'DR': 7}
+
+		print "Discrete 2: ", self.discreteDist2
+		print "Discrete 1: ", self.discreteDist
                              
                             
                              
@@ -38,51 +41,64 @@ class setRobotPosition(object):
 		return msg.name.index(model_name)
 
 	def getQ(self):
-		f = open('Qtable12.pkl', 'rb') #Open Qtable file to use what was learned
+		f = open('Qtable14.pkl', 'rb') #Open Qtable file to use what was learned
 		Q, reward = pickle.load(f) #Set Qtable to Q, ignore reward its not needed here
 		return Q
 
 	def discDist(self):
 		w = 9
 		h = 9
-		l = []
+		l_straight = []
+		l_diagonal = []
 		for i in range(w+1):
 			for j in range(h+1):
 				dx = w - i
 				dy = h - j
-				l.append(round(sqrt(dx**2+dy**2),2))
-		return l
+				if dx == 0 or dy == 0:
+					l_straight.append(round(sqrt(dx**2+dy**2),2))
+				else:
+					l_diagonal.append(round(sqrt(dx**2+dy**2),2))
+
+		l_diagonal.append(0.0)
+		return l_straight, l_diagonal
 
 	def discAng(self):
-		return [[-15, 15],[15, 75],[75, 105],[105, 165],[-165, -105],[-105, -75], [-75, -15]]
+		return [[-22, 22],[22, 68],[68, 112],[112, 158],[-158, -112],[-112, -68], [-68, -22]]
 
-	def approxDist(self, dist):
-		return min(self.discreteDist, key=lambda x:abs(x-dist))
+	def approxDist(self, dist, odd):
+		if dist < 1.0:
+			return 0
+		if odd == 0:		
+			return min(self.discreteDist, key=lambda x:abs(x-dist))
+		else:
+			return min(self.discreteDist2, key=lambda x:abs(x-dist))
 
 
 	def approxAngle(self, angle):
 		angle = round(angle*(180/pi))
 
-		if angle > 165 or angle < -165:
+		if angle >= 158 or angle <= -158:
 			return 4
 
 		for i in range(len(self.discreteAng)):
 			if angle in range(self.discreteAng[i][0],self.discreteAng[i][1]):
 				return i+1 if i > 3 else i
+
+
 		return 0
 
 
 	def getDist(self):
-		inc_x = self.jeff[0] - self.rob[0]
-		inc_y = self.jeff[1] - self.rob[1]	
-		return self.approxDist(sqrt(inc_x**2 + inc_y**2))		
+		dx = self.jeff[0] - self.rob[0]
+		dy = self.jeff[1] - self.rob[1]	
+		
+		return sqrt(dx**2 + dy**2)	
 
 	def getAngle(self):
 		inc_x = self.jeff[0] - self.rob[0]
 		inc_y = self.jeff[1] - self.rob[1]	
 
-		angle_to_jeff = atan2(inc_y, inc_x)
-		return self.approxAngle(angle_to_jeff)
+		return atan2(inc_y, inc_x)
 
 	def maxAction(Q, state, actions): #Choose best action from current state
 		values = np.array([Q[state, a] for a in actions])
@@ -101,91 +117,71 @@ class setRobotPosition(object):
 			elif cw % 8 == rotTo:
 				return False
 				 
-			
+	def getSpeed(self):
+		angle = self.getAngle()
+		angle = round(angle*(180/pi))
+		robAng = round(self.rob[2]*(180/pi))
+		dist = self.getDist()
+
+		maxAngle = 180
+		maxDist = 11.5
+		
+		linVel = dist/maxDist
+		angVel = (angle - robAng)/maxAngle
+
+
+		return linVel, angVel
+		
+		
 		
 
 	def setSpeed(self, action, state, rob, old_state):
-		if old_state == state:
-			if state[0] == 0:
-				self.speed.linear.x = 0.0
-				self.speed.angular.z = 0.0
-			elif action == rob: #Go Straight
-				self.speed.linear.x = -0.15
-				self.speed.angular.z = 0.0
-			else:
-				ccw = self.rotateCCW(action, rob)
-				self.speed.linear.x = 0.0
-				if ccw:
-					self.speed.angular.z = 0.15
-				else:
-					self.speed.angular.z = -0.15
+		linVel, angVel = self.getSpeed()
+		if state[0] == 0:
+			self.speed.linear.x = 0.0
+			self.speed.angular.z = 0.0
+		elif action == rob: #Go Straight
+			
+			self.speed.linear.x = -0.2 * linVel - 0.03
+			
+			self.speed.angular.z = 0.1 * angVel + 0.01 if angVel > 0 else 0.1 * angVel - 0.01#Negative clockwise, positive counter-clockwise
 		else:
-			if state[0] == 0:
-				self.speed.linear.x = self.speed.linear.x * 0.5
-				self.speed.angular.z = self.speed.angular.z * 0.5
-			elif action == rob: #Go Straight
-				self.speed.linear.x = self.speed.linear.x * 0.5
-				self.speed.angular.z = self.speed.linear.z * 0.5
+			ccw = self.rotateCCW(action, rob)
+			self.speed.linear.x = 0.0
+			if ccw:
+				self.speed.angular.z = 0.3 * abs(angVel) + 0.02
 			else:
-				ccw = self.rotateCCW(action, rob)
-				self.speed.linear.x = 0.0
-				if ccw:
-					self.speed.angular.z = self.speed.linear.z * 0.5
-				else:
-					self.speed.angular.z = self.speed.linear.z * 0.5
+				self.speed.angular.z = -0.3 * abs(angVel) - 0.02
 	
 
 	def getState(self):
-		if self.getDist() == 0:
+		ang = self.approxAngle(self.getAngle())
+		dist = self.getDist() #Send if angle is odd or even
+		dist = self.approxDist(dist, ang % 2)
+		if dist == 0:
 			return tuple([0, 0])
 		else:
-			return tuple([self.getDist(), self.getAngle()])
+			return tuple([dist, ang])
 				
 	def angleToJeff(self):
-		freq = rospy.Rate(2)
+		freq = rospy.Rate(10)
 		state = [0, 0]
 		old_state = [0, 0]
 
 
 		while not rospy.is_shutdown():
 			state = self.getState()
+
 			robAng = self.approxAngle(self.rob[2])
 			action = Gridworld.maxAction(self.Q, state, self.env.possibleActions)
 
 
-			print "Taken action", self.actionSpace[action], " Action that should be taken: ", state[1], " angle where we are: ", robAng
+			print "State: ", state, " Action-Angle: ", [self.actionSpace[action], robAng], " Velocities: ", [round(self.speed.linear.x,4), round(self.speed.angular.z,4)]
 
 			self.setSpeed(self.actionSpace[action], state, robAng, old_state)
 			
 			self.pub.publish(self.speed)
 
-			#observation_, _, done, _ = self.env.step(action)
-
-			'''inc_x = self.jeff[0] - self.rob[0] ###Remove
-			inc_y = self.jeff[1] - self.rob[1] ###Remove
-			angle_to_jeff = atan2(inc_y, inc_x) ##Remove
-
-			final_angle = angle_to_jeff - self.rob[2] ##Remove
-
-			print("Current state is: ", state, " and total angle is: ", angle_to_jeff*(180/pi))
-
-			if final_angle > 0.1: #Turn clockwise
-				self.speed.linear.x = 0.0
-				self.speed.angular.z = 0.3
-			elif final_angle < -0.1: #Turn counter-clockwise
-				self.speed.linear.x = 0.0
-				self.speed.angular.z = -0.3
-			else: #Go straight
-				self.speed.linear.x = -0.2
-				self.speed.angular.z = 0.0
-
-			
-			if sqrt(inc_x**2 + inc_y**2) < 1.5:
-				self.speed.linear.x = 0.0
-				self.speed.angular.z = 0.0
-				self.pub.publish(self.speed)
-			else:
-				self.pub.publish(self.speed)'''
 
 			old_state = state
 			freq.sleep()
