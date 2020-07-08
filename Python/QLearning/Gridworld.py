@@ -120,10 +120,6 @@ class GridWorld(object):
             nearby = True
             quadrant2 = self.getQuadrant(resultingPosition, self.negative)
 
-            if negative_dist == 0:
-                self.giveReward(newState, resultingPosition)
-
-
 
         return tuple([self.getDist(resultingPosition, self.goal), self.getQuadrant(resultingPosition, self.goal), nearby, quadrant2])
 
@@ -136,6 +132,11 @@ class GridWorld(object):
         quadrant = newState[1]  # Quadrant we should go
         newQuadrant = actionToQuadrant[action]  # Quadrant we actually going
 
+        negative_dist = self.getDist(newState, self.negative)
+        if negative_dist == 0: #If negative person i stepped upon
+            return -50
+
+
 
         if not self.isTerminalState(newState):
             if newState[2] == True:
@@ -147,17 +148,18 @@ class GridWorld(object):
                 return -1  # Best Case Scenario where it goes a straight direction
             else: #If we're not going in the right direction - give bigger punishment
                 return -5
-        elif self.isTerminalState(newState) and newState[2]==True: # If we're at Goal give punishment 0
-            return -50
         else:
             return 0
 
     def step(self, action):
         resultingState = self.getState(action) #Calculate new state based on action taken
 
+
         reward = self.giveReward(resultingState, action) #Give reward based on action taken
         if reward == 0: #If robot at goal, return state = (0,0), reward = 0, Finished = True.
-            return (0, 0, False, 0), 0, True, None
+            return (0, 0, False, 0), reward, True, None
+        elif reward == -50:
+            return resultingState, reward, True, None
 
         if not self.offGridMove(action):  # If not moving out of boundaries
             self.setAgentPosition(action, resultingState) # Change the current state and return new state, reward, finish..
