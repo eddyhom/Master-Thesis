@@ -74,6 +74,9 @@ class GridWorld(object):
 
         pos = [person[0] - newPosition[0], person[1] - newPosition[1]]
 
+        if all([v == 0 for v in pos]):
+            return 0
+
 
         if pos[0] > 0:
             if pos[1] > 0:
@@ -245,7 +248,8 @@ if __name__ == '__main__':
         if i % 2499 == 0: #Rend every 2500 iterations
             print('starting game ', i)
             print("This is epReward: ", totalRewards[i - 1])
-            print("This is EPS: ", EPS)
+            print("This is EPS: \n", EPS)
+
 
             rend = True
             pygame.init()
@@ -296,7 +300,6 @@ if __name__ == '__main__':
             if rend:
                 pygame.time.delay(50)
                 rend = env.render(win)
-            print(Q)
 
         if EPS - 2 / numGames > 0:
             EPS -= 1 / stopLearning #Lower Randomness after each iteration to start taking Best action instead of random action.
