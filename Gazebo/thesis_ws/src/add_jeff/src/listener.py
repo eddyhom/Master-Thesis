@@ -7,13 +7,25 @@ from tf.transformations import euler_from_quaternion
 from math import atan2, pi, sqrt, floor
 import pickle
 import Gridworld #We use the training code for the class GridWorld
+import client
+import glob
+import os
+import socket
+import time
+
+
+PORT = 1026
+CLIENT_IP = '192.168.1.36'
+SERVER_IP = '192.168.1.33'
+Q_LINK = 'Qtable14.pkl'
 
 class setRobotPosition(object):
-	def __init__(self, pub):
+	def __init__(self, pub, s):
 		w = 9
 		h = 9
 		self.env = Gridworld.GridWorld(w, h)
 		self.pub = pub #Publisher handle
+		self.sock = s
 		self.rob = [0,0,0]
 
 		self.jeff = [0, 0] #x, y position
@@ -30,18 +42,13 @@ class setRobotPosition(object):
 		self.actionSpace = {'R': 0, 'UR': 1, 'U': 2,  'UL': 3, 
 				    'L': 4 ,'DL': 5, 'D': 6, 'DR': 7}
 
-		print "Discrete 2: ", self.discreteDist2
-		print "Discrete 1: ", self.discreteDist
                              
-                            
-                             
-
-
+                                                 
 	def getModelIndex(self, msg, model_name):
 		return msg.name.index(model_name)
 
 	def getQ(self):
-		f = open('Qtable14.pkl', 'rb') #Open Qtable file to use what was learned
+		f = open(Q_LINK, 'rb') #Open Qtable file to use what was learned
 		Q, reward = pickle.load(f) #Set Qtable to Q, ignore reward its not needed here
 		return Q
 
@@ -186,6 +193,37 @@ class setRobotPosition(object):
 			old_state = state
 			freq.sleep()
 
+	def findFace(self):
+		
+		list_of_files = glob.glob('/home/peter/thesis_ws/src/add_jeff/src/camera_save_tutorial/*.jpg')
+		latest_file = max(list_of_files, key = os.path.getctime)
+		
+
+		face = client.contactServer(self.sock, latest_file)
+		print face
+
+		return False
+	
+
+
+	def findJeff(self):
+		freq = rospy.Rate(4)
+
+
+		while not rospy.is_shutdown():
+
+			self.speed.linear.x = 0.0
+			self.speed.angular.z = 0.0
+			self.pub.publish(self.speed)
+
+			face = self.findFace()
+
+			if face:
+				break 
+
+
+			freq.sleep()
+
 
 	def callback(self, msg):
 		jeff_ind = self.getModelIndex(msg, self.jeff_name)
@@ -207,12 +245,19 @@ class setRobotPosition(object):
 def listener():
 	rospy.init_node('listener', anonymous=True)
 	pub = rospy.Publisher("/my_vehicle2/cmd_vel", Twist, queue_size=1)
-	setPos = setRobotPosition(pub)
+
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect((SERVER_IP, PORT))
+
+
+	setPos = setRobotPosition(pub, s)
 	
 
 	rospy.Subscriber("/gazebo/model_states", ModelStates, setPos.callback)
 	rospy.Subscriber("/my_vehicle2/odom", Odometry, setPos.callback2)
-	setPos.angleToJeff()
+	setPos.findJeff() #angleToJeff()
+
+	s.close()
 
 
 
