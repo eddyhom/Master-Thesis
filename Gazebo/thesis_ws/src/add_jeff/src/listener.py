@@ -29,7 +29,7 @@ class setRobotPosition(object):
 		self.rob = [0,0,0]
 
 		self.jeff = [0, 0] #x, y position
-		self.jeff_name = 'jeff' #Person's name
+		self.jeff_name = 'jeff2' #Person's name
 		
 		self.speed = Twist()
 
@@ -246,18 +246,18 @@ def listener():
 	rospy.init_node('listener', anonymous=True)
 	pub = rospy.Publisher("/my_vehicle2/cmd_vel", Twist, queue_size=1)
 
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect((SERVER_IP, PORT))
-
+	#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	#s.connect((SERVER_IP, PORT))
+	s = 0
 
 	setPos = setRobotPosition(pub, s)
 	
 
 	rospy.Subscriber("/gazebo/model_states", ModelStates, setPos.callback)
 	rospy.Subscriber("/my_vehicle2/odom", Odometry, setPos.callback2)
-	setPos.findJeff() #angleToJeff()
+	setPos.angleToJeff()#setPos.findJeff() #
 
-	s.close()
+	#s.close()
 
 
 

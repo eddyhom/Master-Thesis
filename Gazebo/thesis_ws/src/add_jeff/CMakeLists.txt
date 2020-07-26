@@ -29,6 +29,6 @@ catkin_package(
 		roscpp
 )
 
-catkin_install_python(PROGRAMS src/talker.py src/listener.py
+catkin_install_python(PROGRAMS src/talker.py src/listener.py src/listener2.py
 	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

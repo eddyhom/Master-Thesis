@@ -3,7 +3,8 @@
 import socket
 import glob
 
-emotions = {'-1': "Negative", '0': "NoFace", '1': "Positive"}
+
+emotions = {'1': "Positive", '2': "Negative", '0': "NoFace", '12': "Positive-Negative", '21': "Negative-Positive"}
 
 
 def contactServer(sock, picture):
@@ -15,13 +16,13 @@ def contactServer(sock, picture):
 		m = string.encode("utf-8") + l
 
 		sock.sendall(m)
-		print picture, "Sent!"
+		print "Picture Sent!"
 	f.close()
 
 
 
 	msg = sock.recv(1024)
-	print emotions[msg]
+
 	return msg
 
 

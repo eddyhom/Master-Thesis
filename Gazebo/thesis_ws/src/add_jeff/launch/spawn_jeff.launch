@@ -10,7 +10,7 @@
 		<arg name="roll" value="0.0"/>
 		<arg name="pitch" value="0.0"/>
 		<arg name="yaw" value="0.0"/>
-		<arg name="sdf_robot_file" value="$(find add_jeff)/models/jeff/model.sdf"/>
+		<arg name="sdf_robot_file" value="$(find add_jeff)/models/jeff-happy/model.sdf"/>
 	</include>
 
 

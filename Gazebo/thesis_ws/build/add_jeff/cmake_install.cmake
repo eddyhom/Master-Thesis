@@ -55,3 +55,7 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/add_jeff" TYPE PROGRAM FILES "/home/peter/thesis_ws/build/add_jeff/catkin_generated/installspace/listener.py")
 endif()
 
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/add_jeff" TYPE PROGRAM FILES "/home/peter/thesis_ws/build/add_jeff/catkin_generated/installspace/listener2.py")
+endif()
+
