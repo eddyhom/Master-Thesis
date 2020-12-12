@@ -14,39 +14,36 @@ Main files:
 - Gazebo/thesis_ws/src/add_jeff/src/listener2.py - Controls the environment with ROS and communicates with the server.
 
 Running simulation:
+
 1- Launch server side using python3. $ python3 ../../server.py (takes some time wait until it starts)
+
 2- Launch Gazebo world from Ubuntu 16 terminal. $ roslaunch add_jeff start_test_world.launch
+
 3- Initialize camera from another ubuntu terminal. $ rosrun image_view image_view image:=/my_vehicle/camera/image_raw
+
 4- Finally initialize the client side in ubuntu. $ rosrun add_jeff listener2.py
 
-Flow of simulation.
+Flow of simulation -
+
 1-Initialize Server since it might take several seconds to load the libraries and the models.
+
 2-Launch Gazebo world.
+
 3-Initialize camera mounted on robot to be able to classify persons' emotions, program starts immediately collecting images and saving them in given directory.
 
   --Define directory to save images in launched world. -Gazebo/thesis_ws/src/add_jeff/worlds/*.world under:
   
         <link name='camera_link'>
         ...
-        
           <sensor name='camera1' type='camera'>
-          
             <camera name='head'>
-            
               <save enabled='1'>
-              
                 <path>/home/peter/thesis_ws/src/add_jeff/src/camera_save_tutorial</path> <---- DEFINE HERE
-                
               </save>
-              
               ...
-              
             </camera>
-            
           ...
-          
           </sensor>
-          
         </link>
         
 4- Run listener2.py. It connects all the programs.
